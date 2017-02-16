@@ -35,75 +35,91 @@ while test $salir != 's'
 do
 
     echo "------------------------------"
-	echo "¿Que operación desea realizar?"
+    echo "¿Que operación desea realizar?"
     echo "------------------------------"
-	echo "1.Autentificar"
-	echo "2.Obtener información de usuarios"
-	echo "3.Realizar búsquedas en twitter"
-	echo "4.Obtener tweets en tiempo real"
-    echo "5.Generar un fichero gdf para gephi"
-	echo "6.Salir"
-	echo " "
-	echo "--> Introduzca número de opción: "
-	echo " "
+    echo "1.Autentificar"
+    echo "2.Obtener información de usuarios"
+    echo "3.Realizar búsquedas en twitter"
+    echo "4.Obtener tweets en tiempo real"
+    echo "5.Generar grafo de relaciones declaradas"
+    echo "6.Generar grafo de relaciones dinámicas"
+    echo "7.Salir"
+    echo " "
+    echo "--> Introduzca número de opción: "
+    echo " "
 
-	read opcion
+    read opcion
 
-	case $opcion in
-		1)
-			cd keys			
-			tweet_auth.py $app_key $usuario
-			cd ..
-		;;
+    case $opcion in
+        1)
+            cd keys            
+            tweet_auth.py $app_key $usuario
+            cd ..
+        ;;
 
-		2)
-		
-			echo "Introduce el nombre del fichero con la lista de usuarios (cada usuario en una línea): "
-			read fichero
-			echo "Introduce el tipo de información (profile | followers | following | tweets): "
-			read option
+        2)
+        
+            echo "Introduce el nombre del fichero con la lista de usuarios (cada usuario en una línea): "
+            read fichero
+            echo "Introduce el tipo de información (profile | followers | following | relations | tweets): "
+            read option
             tweet_rest.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experimento/$fichero" --$option 
-		;;
+        ;;
 
-		3)	
-			echo "Introduce palabra a buscar: "
-			read palabra
-			echo "Introduce el nombre del fichero destino: "
-			read fichero
+        3)    
+            echo "Introduce palabra a buscar: "
+            read palabra
+            echo "Introduce el nombre del fichero destino: "
+            read fichero
 
-			tweet_search.py "./keys/$app_key" "./keys/$usuario.key" --query "$palabra" --file_out "./store/$experimento/$fichero"
-		;;
+            tweet_search.py "./keys/$app_key" "./keys/$usuario.key" --query "$palabra" --file_out "./store/$experimento/$fichero"
+        ;;
 
-		4)
-		
-			echo "Introduce el nombre del fichero con las palabras clave separadas por , : "
-			read fichero
-			echo "Introduce el nombre del fichero destino: "
-			read fich_destino
+        4)
+        
+            echo "Introduce el nombre del fichero con las palabras clave separadas por , : "
+            read fichero
+            echo "Introduce el nombre del fichero destino: "
+            read fich_destino
 
-			tweet_streaming.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experimento/" $fich_destino --words "./store/$experimento/$fichero"
+            tweet_streaming.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experimento/" $fich_destino --words "./store/$experimento/$fichero"
 
-		;;
-		5)
-		
-			echo "Introduce el nombre del fichero con los tweets: "
-			read fichero
-			echo "Introduce el tipo de relación (RT | reply | mention): "
-			read relation
+        ;;
+        5)
+        
+            echo "Introduce el nombre del fichero con los perfiles de los usuarios: "
+            read fichero
+            echo "opción --fast? (s/n)"
+            read fast
+            if [ $fast == 's' ]
+            then
+              fast='--fast'
+            else
+              fast=''
+            fi
+            tweet_rest.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experimento/$fichero" "--conections" $fast
+
+        ;;
+        6)
+        
+            echo "Introduce el nombre del fichero con los tweets: "
+            read fichero
+            echo "Introduce el tipo de relación (RT | reply | mention): "
+            read relation
             echo "Introduce top size (100-50000)"
             read top
 
-			tweets_grafo.py "./store/$experimento/$fichero" "--$relation" --top_size $top
+            tweets_grafo.py "./store/$experimento/$fichero" "--$relation" "--top_size" $top
 
-		;;
+        ;;
 
-		6)
-			salir='s'
-		;;
-	esac
+        7)
+            salir='s'
+        ;;
+    esac
 done
 
 
-		
+        
 
-	
+    
