@@ -5,16 +5,16 @@ T-hoarder_kit.sh provides a menu for access to python scripts. The scripts direc
 
 Assume that the access keys are in the keys directory and the results are deposited in the store/experiment directory
 
-     T-hoarder ---- keys
+     T-hoarder --+-- keys
                  |
-                 + - scripts
+                 +- scripts
                  |
-                 +- store ---- experiment-1
-                 |
-                 + - experiment-2
-                ....
-                 |
-                 + - experiment-n
+                 +- store -+-- experiment-1
+                           |
+                           +-- experiment-2
+                         ....
+                           |
+                           +-- experiment-n
                  
 
 Using the python scripts from the command line the keys and the results is free to place them where you want
