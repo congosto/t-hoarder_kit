@@ -79,7 +79,7 @@ class Format_gdf(object):
     self.f_gdf= open (prefix+'.gdf','w')
     print "-->Result in %s.gdf" % prefix
     self.nodes='nodedef>name VARCHAR,label VARCHAR,net VARCHAR,relation VARCHAR, num_followers VARCHAR, num_following VARCHAR, num_list VARCHAR, num_statuses VARCHAR, user_TZ VARCHAR \n'
-    self.arcs='edgedef>node1 VARCHAR,node2 VARCHAR\n'
+    self.arcs='edgedef>node1 VARCHAR,node2 VARCHAR,directed BOOLEAN\n'
     return
  
   def put_node(self,id_node,user_name,net,relation,num_followers,num_following,num_list,num_statuses,user_TZ):
@@ -99,7 +99,7 @@ class Format_gdf(object):
     return
      
   def put_arc(self,orig,dest):
-    self.arcs = self.arcs + ('%s,%s\n' % (orig,dest))
+    self.arcs = self.arcs + ('%s,%s,true\n' % (orig,dest))
     return
     
   def print_graph(self):
@@ -266,15 +266,16 @@ def get_tweets(api,user,flag_id_user,f_log):
     except:
       f_log.write(('%s, %s error en tweepy, method tweets, user %s\n')  % (time.asctime(),TypeError(),user)) 
       break
-    print '--> len page', len(page) 
+    #print '--> len page', len(page) 
     #page is a list of statuses
+    print 'collected %s tweets\n' % len (tweets_list)
     num_pages +=1
     if len(page) ==1:
         hay_tweets=False
         break
-    print "--> num pages", num_pages
+    #print "--> num pages", num_pages
     for statuse in page:
-      print recent_tweet,statuse.id
+      #print recent_tweet,statuse.id
       recent_tweet= statuse.id
       url_expanded =None
       geoloc=None
@@ -282,7 +283,7 @@ def get_tweets(api,user,flag_id_user,f_log):
       statuse_quoted_text= None
       try:
         if hasattr(statuse, 'quoted_status_id'):
-          print statuse.quoted_status_id
+          #print statuse.quoted_status_id
           statuse_quoted=statuse.quoted_status
           statuse_quoted_text=statuse_quoted.text
           statuse_quoted_text=re.sub('[\r\n\t]+', ' ',statuse_quoted_text)
@@ -401,11 +402,11 @@ def main():
   if flag_profile:
     f_out=  codecs.open(prefix+'_profiles.txt', 'w',encoding='utf-8', errors='ignore')
     print "--> Results in %s_profiles.txt\n" % prefix   
-    f_out.write ('id user\tscreen_name\tfollowers\tfollowing\tstatuses\tlists\tsine\tname\ttime zone\tlocation\tweb\tavatar\tbio\ttimestamp\n')
+    f_out.write ('id user\tscreen_name\tnet\trelation\tfollowers\tfollowing\tstatuses\tlists\tsine\tname\ttime zone\tlocation\tweb\tavatar\tbio\ttimestamp\n')
     for line in f_users_group_file:
       user= line.strip("\n")
-      profile= get_user (api, user,flag_id_user,f_log) 
-      f_out.write (profile)
+      profile=api.get_user( screen_name=user)
+      put_profile (api,user,profile,'root',f_log, f_out)
     f_out.close()
   if flag_followers:
     name_file_out= '%s_follower_profiles.txt' % (prefix)
