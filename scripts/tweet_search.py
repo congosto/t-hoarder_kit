@@ -94,16 +94,16 @@ def tweet_search (api,file_out,query,language):
     try:
       check_rate_limits (api,'search','/search/tweets',900)
       if first_tweet:
-        print 'since_id', recent_tweet
+        #print 'since_id', recent_tweet
         page = api.search(query, since_id=recent_tweet,include_entities=True,result_type='recent',count=100)  
         first_tweet=False
       else:
-        print 'max_id', recent_tweet-1
+        #print 'max_id', recent_tweet-1
         page = api.search(query, max_id=recent_tweet-1,include_entities=True,result_type='recent',count=100) 
     except:
       f_log.write('error en tweepy\t') 
       break
-    print 'obtenidos',len(page)
+    print 'collected',n_tweets
     if len(page) == 0:
       hay_tweets=False
       break
@@ -159,7 +159,7 @@ def tweet_search (api,file_out,query,language):
       except :
         f_log.write('Twitter Error\t')     
 # save tweets
-  print 'recogidos',n_tweets
+  print 'collected',n_tweets
 
 # write log file
   f_log.write(('wrote %s tweets\t') % ( n_tweets))
