@@ -1,7 +1,8 @@
 # t-hoarder_kit
 Set of basic tools to extract data from the Twitter API and visualize graphs
 
-T-hoarder_kit.sh provides a menu of access to python scripts. The scripts directory path must be included in the environment variable $PATH
+T-hoarder_kit.sh provides a menu for access to python scripts. The scripts directory path must be included in the environment variable $PATH.
+
 Assume that the access keys are in the keys directory and the results are deposited in the store/experiment directory
 
      T-hoarder ---- keys
