@@ -13,7 +13,7 @@ Assume that the access keys are in the keys directory and the results are deposi
                  + - experiment-2
                 ....
                  |
-                 + - experiment-n
+                 + - experiment-n
                  
 
 Using the python scripts from the command line the keys and the results is free to place them where you want
