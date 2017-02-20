@@ -22,12 +22,12 @@ Using the python scripts from the command line the keys and the results is free 
       tweet_auth.py [-h] keys_app user
 
       tweet_rest.py [-h] [--id_user] [--fast]
-                     (--profile | --followers | --following | --relations | --conections | --tweets)
+                     (--profile | --followers | --following | --relations | --conections | --tweets | --h_index)
                      keys_app keys_user file_users
 
-      tweet_rest.py [-h] [--id_user] [--fast]
-                     (--profile | --followers | --following | --relations | --conections | --tweets)
-                     keys_app keys_user file_users
+      tweet_search.py [-h] [--query QUERY] [--file_out FILE_OUT]
+                       [--language LANGUAGE]
+                       keys_app keys_user
  
       tweet_streaming.py [-h] [--users USERS] [--words WORDS]
                           [--locations LOCATIONS]
