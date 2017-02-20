@@ -108,6 +108,36 @@ class Format_gdf(object):
     self.f_gdf.close ()
     return
 
+class HIndex(object):
+  def __init__(self, user, tweets):
+    self.user = user
+    self.tweets = tweets
+    self.list_h=[]
+    self.num_tweets = len (self.tweets)
+    for tweet in tweets:
+      data=tweet.split('\t')
+      #print 'len data', len(data),'data',data
+      if len(data) > 12:
+        rts=int(data[12])
+        #print rts
+        self.list_h.append(rts)
+    self.h_order = sorted(self.list_h, reverse = True)
+    #print self.h_order
+  
+  def clear (self):      
+    del self.list_h[:]
+    del self.h_order[:]
+    
+  def h (self):
+    h=0
+    num_h=len (self.h_order)
+    for h in range (0,num_h):
+      #print h,self.h_order[h]
+      if h >= self.h_order[h]:
+        break
+      #print 'H-index', h
+    return h  
+      
 def how_long_it_takes (dict_user_attrib,flag_fast):
   dict_top={}
   num_requests=0
@@ -239,7 +269,7 @@ def get_following (api,user,dict_friends,f_log,f_out,flag_friends):
     f_log.write(('%s, %s error en tweepy, method friends/list, user %s\n')  % (time.asctime(),TypeError(),user))
   return
 
-def get_tweets(api,user,flag_id_user,f_log):  
+def get_tweets(api,user,flag_id_user,f_log,flag_RT):  
   tweets_list=[]
   error=False
   pages=0
@@ -254,15 +284,15 @@ def get_tweets(api,user,flag_id_user,f_log):
     try:
       if first_tweet:
         if flag_id_user:
-          page =api.user_timeline (user_id=user,since_id=recent_tweet,include_rts=1,count=200,include_entities=1)
+          page =api.user_timeline (user_id=user,since_id=recent_tweet,include_rts=flag_RT,count=200,include_entities=1)
         else:
-          page =api.user_timeline (screen_name=user,since_id=recent_tweet,include_rts=1,count=200,include_entities=1)
+          page =api.user_timeline (screen_name=user,since_id=recent_tweet,include_rts=flag_RT,count=200,include_entities=1)
         first_tweet=False
       else:
          if flag_id_user:
-           page =api.user_timeline (user_id=user,max_id=recent_tweet,include_rts=1,count=200,include_entities=1)
+           page =api.user_timeline (user_id=user,max_id=recent_tweet,include_rts=flag_RT,count=200,include_entities=1)
          else:
-           page =api.user_timeline (screen_name=user,max_id=recent_tweet,include_rts=1,count=200,include_entities=1)
+           page =api.user_timeline (screen_name=user,max_id=recent_tweet,include_rts=flag_RT,count=200,include_entities=1)
     except:
       f_log.write(('%s, %s error en tweepy, method tweets, user %s\n')  % (time.asctime(),TypeError(),user)) 
       break
@@ -366,6 +396,7 @@ def main():
   action.add_argument('--relations', action='store_true',help='get relations')
   action.add_argument('--conections', action='store_true',help='get conections')
   action.add_argument('--tweets', action='store_true', help='get tweets')
+  action.add_argument('--h_index', action='store_true', help='get h_index')
 
   #obtego los argumentos
   args = parser.parse_args()
@@ -380,6 +411,7 @@ def main():
   flag_relations=args.relations
   flag_conections=args.conections
   flag_tweets = args.tweets
+  flag_h_index = args.h_index
   
   #obtengo el nombre y la extensión del ficheros con la lita de los usuarios
   filename=re.search (r"([\.]*[\w/-]+)\.([\w]+)",file_users)
@@ -462,13 +494,28 @@ def main():
     f_out.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tRT count\tRetweed\tin reply\tfavorite count\tquoted\n')
     for line in f_users_group_file:
       user= line.strip('\n')
-      tweets= get_tweets (api,user,flag_id_user,f_log) 
+      tweets= get_tweets (api,user,flag_id_user,f_log,True) 
       for tweet in tweets:
         f_out.write (tweet)
+    f_out.close()
+  elif flag_h_index:
+    f_out=  codecs.open(prefix+'_h_index.txt','w',encoding='utf-8')
+    print "-->Results in %s_h_index.txt\n" % prefix
+    f_out.write ('user\th_index\n')
+    for line in f_users_group_file:
+      user= line.strip('\n')
+      tweets= get_tweets (api,user,flag_id_user,f_log,False) 
+      h_index= HIndex(user,tweets)
+      h=h_index.h()
+      h_index.clear()
+      f_out.write('%s\t%s\n' % (user,h))
     f_out.close()
   f_log.close()
   f_users_group_file.close()
   exit(0)
+  f_log.close()
+  f_users_group_file.close()
+
 
 if __name__ == '__main__':
   main()
