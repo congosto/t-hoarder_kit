@@ -388,13 +388,13 @@ def main():
   parser.add_argument('keys_user', type=str, help='file with user keys')
   parser.add_argument('file_users', type=str, help='file with list users')
   parser.add_argument('--id_user', action='store_true', help='use id instead screen name')
-  parser.add_argument('--fast', action='store_true', help='get conections faster')
+  parser.add_argument('--fast', action='store_true', help='get connections faster')
   action = parser.add_mutually_exclusive_group(required=True)
   action.add_argument('--profile', action='store_true',help='get profiles')
   action.add_argument('--followers', action='store_true',help='get followers')
   action.add_argument('--following', action='store_true',help='get following')
   action.add_argument('--relations', action='store_true',help='get relations')
-  action.add_argument('--conections', action='store_true',help='get conections')
+  action.add_argument('--connections', action='store_true',help='get connections')
   action.add_argument('--tweets', action='store_true', help='get tweets')
   action.add_argument('--h_index', action='store_true', help='get h_index')
 
@@ -409,7 +409,7 @@ def main():
   flag_followers=args.followers
   flag_following=args.following
   flag_relations=args.relations
-  flag_conections=args.conections
+  flag_connections=args.connections
   flag_tweets = args.tweets
   flag_h_index = args.h_index
   
@@ -473,7 +473,7 @@ def main():
       get_followers (api,user,dict_friends,f_log,f_out,True)
       get_following (api,user,dict_friends,f_log,f_out,False)
     f_out.close()
-  elif flag_conections:
+  elif flag_connections:
     dict_user_attrib= get_attrib(f_users_group_file)
     how_long_it_takes (dict_user_attrib,flag_fast)
     list_user_order=sorted([(value,key) for (key,value) in dict_user_attrib.items()])

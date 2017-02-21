@@ -22,7 +22,7 @@ Using the python scripts from the command line the keys and the results is free 
       tweet_auth.py [-h] keys_app user
 
       tweet_rest.py [-h] [--id_user] [--fast]
-                     (--profile | --followers | --following | --relations | --conections | --tweets | --h_index)
+                     (--profile | --followers | --following | --relations | --connections | --tweets | --h_index)
                      keys_app keys_user file_users
 
       tweet_search.py [-h] [--query QUERY] [--file_out FILE_OUT]
@@ -35,6 +35,9 @@ Using the python scripts from the command line the keys and the results is free 
 
       tweets_grafo.py [-h] [--top_size TOP_SIZE] (--RT | --mention | --reply)
                        file_in
+
+      user_klout.py [-h] file_users APIkey
+
 
 
 For more information, visit the wiki

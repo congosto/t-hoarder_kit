@@ -24,8 +24,8 @@ from pyklout import Klout
 import argparse
 
 class GetKlout(object):
-  def __init__(self,):
-     self.api = Klout('your APY KEY')
+  def __init__(self,APIkey):
+     self.api = Klout(APIkey)
 
   def get_klout (self,user_twitter):
     data = self.api.identity(str(user_twitter), 'tw')
@@ -40,22 +40,25 @@ def main():
   sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
   #defino argumentos de script
   parser = argparse.ArgumentParser(description='Get users Klout ')
-  parser.add_argument('file_user', type=str, help='file with list users, one by line')
+  parser.add_argument('file_users', type=str, help='file with list users, one by line')
+  parser.add_argument('APIkey', type=str, help='API key de klout')
   args = parser.parse_args()
-  file_user= args.file_user
-  filename=re.search (r"([\w-]+)\.([\w]*)", file_user)
-  print 'file name', file_user
+  file_users= args.file_users
+  APIkey= args.APIkey
+  filename=re.search(r"([\.]*[\w/-]+)\.([\w]+)",file_users)
+  print 'file name', file_users
   if not filename:
-    print "bad filename",file_user, ' Must be an extension'
+    print "bad filename",file_users, ' Must be an extension'
     exit (1)
   prefix=filename.group(1)
   try:  
-    f_in = codecs.open(file_user, 'rU',encoding='utf-8')
+    f_in = codecs.open(file_users, 'rU',encoding='utf-8')
   except:
-    print 'Can not open users file ',file_user
+    print 'Can not open users file ',file_users
     exit (1)
   f_klout = codecs.open(prefix+'_klout.txt', 'w',encoding='utf-8')
-  klout_api=GetKlout()
+  print 'results in %s_klout.txt\n' % (prefix)
+  klout_api=GetKlout(APIkey)
   for line in f_in:
     user=line.strip('\n')
     if user[0] == '@':
@@ -70,7 +73,7 @@ def main():
       print 'klout error'
       f_klout.write('%s\tunknow\n' % (user))
       print 'user %s: unknow\n' % (user)
-    time.sleep(10)
+    time.sleep(1)
   f_klout.close()
   exit(0)
  

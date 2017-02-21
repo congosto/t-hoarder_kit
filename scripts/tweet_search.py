@@ -82,6 +82,7 @@ def tweet_search (api,file_out,query,language):
 
   tweets_list=[]
   f=codecs.open(file_out, 'a',encoding='utf-8',errors='ignore') 
+  print 'results in %s\n' % file_out
   f_log= open(file_out+'.log','a')
   f_log.write(('%s\t') % ( datetime.datetime.now()))
  

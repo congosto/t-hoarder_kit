@@ -38,12 +38,13 @@ do
     echo "¿Que operación desea realizar?"
     echo "------------------------------"
     echo "1.Autentificar"
-    echo "2.Obtener información de usuarios"
+    echo "2.Obtener información de usuarios (profile | followers | following | relations | tweets | h_index)"
     echo "3.Realizar búsquedas en twitter"
     echo "4.Obtener tweets en tiempo real"
-    echo "5.Generar grafo de relaciones declaradas"
-    echo "6.Generar grafo de relaciones dinámicas"
-    echo "7.Salir"
+    echo "5.Generar grafo de relaciones declaradas (followers o following o ambos)"
+    echo "6.Generar grafo de relaciones dinámicas (RTs, reply o menciones)"
+    echo "7.Obtener el klout"
+    echo "8.Salir"
     echo " "
     echo "--> Introduzca número de opción: "
     echo " "
@@ -61,13 +62,13 @@ do
         
             echo "Introduce el nombre del fichero con la lista de usuarios (cada usuario en una línea): "
             read fichero
-            echo "Introduce el tipo de información (profile | followers | following | relations | tweets): "
+            echo "Introduce el tipo de información (profile | followers | following | relations | tweets | h_index): "
             read option
             tweet_rest.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experimento/$fichero" --$option 
         ;;
 
         3)    
-            echo "Introduce palabra a buscar: "
+            echo "Introduce la query (admite conectores AND / OR): "
             read palabra
             echo "Introduce el nombre del fichero destino: "
             read fichero
@@ -83,8 +84,8 @@ do
             read fich_destino
 
             tweet_streaming.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experimento/" $fich_destino --words "./store/$experimento/$fichero"
-
         ;;
+
         5)
         
             echo "Introduce el nombre del fichero con los perfiles de los usuarios: "
@@ -97,7 +98,8 @@ do
             else
               fast=''
             fi
-            tweet_rest.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experimento/$fichero" "--conections" $fast
+
+            tweet_rest.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experimento/$fichero" "--connections" $fast
 
         ;;
         6)
@@ -106,14 +108,24 @@ do
             read fichero
             echo "Introduce el tipo de relación (RT | reply | mention): "
             read relation
-            echo "Introduce top size (100-50000)"
+            echo "Introduce top size (100-50000):"
             read top
 
             tweets_grafo.py "./store/$experimento/$fichero" "--$relation" "--top_size" $top
+        ;;
+
+		7)
+        
+            echo "Introduce el nombre del fichero con la lista de usuarios (cada usuario en una línea): "
+            read fichero
+            echo "Introduce tu  API de Klout:"
+            read APIkey
+
+            user_klout.py "./store/$experimento/$fichero" "$APIkey"
 
         ;;
 
-        7)
+        8)
             salir='s'
         ;;
     esac
