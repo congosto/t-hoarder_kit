@@ -76,6 +76,8 @@ class StreamWatcherListener(tweepy.StreamListener):
       self.f_out.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tname\tdescription\turl_media\ttype media\tquoted\n')
     
   def on_status(self, statuse):
+    print '---->collected tweet', statuse.id
+    time.sleep(10)
     recent_tweet= statuse.id
     statuse_quoted_text=None
     geoloc=None
@@ -105,19 +107,13 @@ class StreamWatcherListener(tweepy.StreamListener):
       if len (urls) >0:
         url=urls[0]
         url_expanded= url['expanded_url']
-    text=re.sub('[\r\n\t]+', ' ',statuse.text)
     try:
+      text=re.sub('[\r\n\t]+', ' ',statuse.text)
       location=re.sub('[\r\n\t]+', ' ',statuse.user.location,re.UNICODE)
-    except:
-      pass
-    try:
       description=re.sub('[\r\n\t]+', ' ',profile_user['description'],re.UNICODE)
-    except:
-      pass 
-    try:    
       name=re.sub('[\r\n\t]+', ' ',profile_user['name'],re.UNICODE)
     except:
-      pass
+      pass 
     try:
       tweet= '%s\t%s\t@%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %  (statuse.id,statuse.created_at,profile_user.screen_name,text, statuse.source,profile_user.id, profile_user.followers_count,profile_user.friends_count,profile_user.statuses_count,location,url_expanded, geoloc,name,description, url_media,type_media,statuse_quoted_text)
       self.f_out.write(tweet) 
@@ -199,8 +195,7 @@ def main():
   oauth=oauth_keys(app_keys_file,user_keys_file)
   auth=oauth.get_auth()
   print "autenticated"
-  #stream = tweepy.Stream(auth, StreamWatcherListener(dir_dest,prefix,ext,auth), timeout=None)
-  stream = tweepy.Stream(auth, StreamWatcherListener(dir_dest,prefix,ext,auth)) 
+  stream = tweepy.Stream(auth, StreamWatcherListener(dir_dest,prefix,ext,auth), timeout=None)
   # Prompt for mode of streaming
   print follow_list,track_list,locations_list_int
   stream.filter(follow_list, track_list,False,locations_list_int)

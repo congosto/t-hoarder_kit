@@ -273,10 +273,16 @@ class Relation(object):
     f_out.close()
     return
                  
+def get_number (item):
+  numner=0
+  match=(re.search (r"\d+",item))
+  if match:
+    number = int(match.group(0))
+  return number
+
 def main():
 
  # init data
-
   #get parameters
   reload(sys)
   sys.setdefaultencoding('utf-8')
@@ -326,9 +332,9 @@ def main():
       data=line.split('\t') 
       author=data[2].lower()
       text=data[3].lower()
-      followers=int(data[6])
-      following=int(data[7])
-      statuses=int(data[8])
+      followers=get_number(data[6])
+      following=get_number(data[7])
+      statuses=get_number(data[8])
       info_author= (author,followers,following,statuses)
       relation.set_author (author,info_author)
       list_relations= relation.get_relation (text,type_relation)
