@@ -77,7 +77,6 @@ class StreamWatcherListener(tweepy.StreamListener):
     
   def on_status(self, statuse):
     print '---->collected tweet', statuse.id
-    time.sleep(10)
     recent_tweet= statuse.id
     statuse_quoted_text=None
     geoloc=None
