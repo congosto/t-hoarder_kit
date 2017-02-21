@@ -62,16 +62,20 @@ class oauth_keys(object):
     return api 
  
 def check_rate_limits (api,type_resource,method,wait):
-  result = api.rate_limit_status(resources=type_resource)
-  resources=result['resources']
-  resource=resources[type_resource]
-  rate_limit=resource[method]
-  limit=int(rate_limit['limit'])
-  remaining_hits=int(rate_limit['remaining'])
-  print 'remaing hits',remaining_hits
-  if remaining_hits <1 :
-    print 'ratelimit, waiting for 15 minutes ->' + str(datetime.now())
-    time.sleep(wait)
+  try:
+    result = api.rate_limit_status(resources=type_resource)
+    resources=result['resources']
+    resource=resources[type_resource]
+    rate_limit=resource[method]
+    limit=int(rate_limit['limit'])
+    remaining_hits=int(rate_limit['remaining'])
+    print 'remaing hits',remaining_hits
+    if remaining_hits <1 :
+      print 'ratelimit, waiting for 15 minutes ->' + str(datetime.now())
+      time.sleep(wait)
+  except:
+      print 'ratelimit, waiting for 15 minutes ->' + str(datetime.now())
+      time.sleep(wait)
   return 
 
 class Format_gdf(object):
@@ -300,7 +304,7 @@ def get_tweets(api,user,flag_id_user,f_log,flag_RT):
     #page is a list of statuses
     print 'collected %s tweets\n' % len (tweets_list)
     num_pages +=1
-    if len(page) ==1:
+    if len(page) <=1:
         hay_tweets=False
         break
     #print "--> num pages", num_pages
