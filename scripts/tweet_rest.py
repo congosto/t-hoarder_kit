@@ -452,7 +452,7 @@ def main():
     print "-->Results in %s\n" % (name_file_out)
     for line in f_users_group_file:
       user= line.strip("\n")
-      dict_friends= get_relation (api,user,f_log)
+      dict_friends= {}
       get_followers (api,user,dict_friends,f_log,f_out,True)
     f_out.close()
   elif flag_following:
@@ -463,7 +463,7 @@ def main():
     print "-->Results in %s\n" % (name_file_out)
     for line in f_users_group_file:
       user= line.strip("\n")
-      dict_friends= get_relation (api,user,f_log)
+      dict_friends= {}
       get_following (api,user,dict_friends,f_log,f_out,True)
     f_out.close()
   elif flag_relations:
