@@ -60,7 +60,7 @@ def main():
   print 'results in %s_klout.txt\n' % (prefix)
   klout_api=GetKlout(APIkey)
   for line in f_in:
-    user=line.strip('\n')
+    user=line.rstrip('\r\n')
     if user[0] == '@':
       user=user[1:]
     if True:

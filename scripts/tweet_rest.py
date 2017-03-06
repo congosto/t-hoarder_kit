@@ -207,7 +207,7 @@ def put_profile (api,user,profile,relation,f_log, f_out):
   except:
     pass
   f_out.write(('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n') % (profile.id, profile.screen_name,user,relation, profile.followers_count, profile.friends_count, profile.statuses_count,profile.listed_count, profile.created_at, name,profile.time_zone, location,profile.url, profile.profile_image_url,description, timestamp_tweet ))
-  f_log.write(('%s:  OK \n')  % (profile.screen_name))
+  f_log.write(('profile %s:  OK \n')  % (profile.screen_name))
   return
 
 def get_relation (api,user,f_log):
@@ -223,54 +223,60 @@ def get_relation (api,user,f_log):
 def get_followers(api,user,dict_friends,f_log,f_out,friends):
   print 'Getting user followers',user
   check_rate_limits (api,'users','/users/show/:id',900)
-  profile=api.get_user( screen_name=user)
-  num_followers=profile.followers_count
-  put_profile (api,user,profile,'root',f_log, f_out)
-  followers_getting=0
   try:
-    print 'user: %s --> getting %s followers profiles' % (user,num_followers)
-    check_rate_limits (api,'followers','/followers/list',900)
-    for page in tweepy.Cursor(api.followers,screen_name=user,count=200).pages():
+    profile=api.get_user( screen_name=user)
+    num_followers=profile.followers_count
+    put_profile (api,user,profile,'root',f_log, f_out)
+    followers_getting=0
+    try:
+      print 'user: %s --> getting %s followers profiles' % (user,num_followers)
       check_rate_limits (api,'followers','/followers/list',900)
-      followers_getting += len(page)
-      print 'user: %s --> collected %s followers profiles of %s' % (user,followers_getting,num_followers)
-      for profile in page:
-        relation='follower'
-        if profile.id in dict_friends:
-          relation='friend'
-        if relation == 'friend' and not friends:
-          pass
-        else:
-          put_profile (api,user,profile,relation,f_log, f_out)
+      for page in tweepy.Cursor(api.followers,screen_name=user,count=200).pages():
+        check_rate_limits (api,'followers','/followers/list',900)
+        followers_getting += len(page)
+        print 'user: %s --> collected %s followers profiles of %s' % (user,followers_getting,num_followers)
+        for profile in page:
+          relation='follower'
+          if profile.id in dict_friends:
+            relation='friend'
+          if relation == 'friend' and not friends:
+            pass
+          else:
+            put_profile (api,user,profile,relation,f_log, f_out)
+    except:
+      f_log.write(('%s, %s error en tweepy, method followers/list, user %s\n')  % (time.asctime(),TypeError(),user))
   except:
-    f_log.write(('%s, %s error en tweepy, method followers/list, user %s\n')  % (time.asctime(),TypeError(),user))
+     f_log.write(('%s, %s error en tweepy, /users/show/:id, user %s\n')  % (time.asctime(),TypeError(),user))
   return
 
 def get_following (api,user,dict_friends,f_log,f_out,flag_friends):
   print 'Getting user following',user
   check_rate_limits (api,'users','/users/show/:id',900)
-  profile=api.get_user( screen_name=user)
-  num_following=profile.friends_count
-  if flag_friends:
-    put_profile (api,user,profile,'root',f_log, f_out)
-  following_getting=0
   try:
-    print 'user: %s --> getting %s following profiles' % (user,num_following)
-    check_rate_limits (api,'friends','/friends/list',900)
-    for page in tweepy.Cursor(api.friends,screen_name=user,count=200).pages():
+    profile=api.get_user( screen_name=user)
+    num_following=profile.friends_count
+    if flag_friends:
+      put_profile (api,user,profile,'root',f_log, f_out)
+    following_getting=0
+    try:
+      print 'user: %s --> getting %s following profiles' % (user,num_following)
       check_rate_limits (api,'friends','/friends/list',900)
-      following_getting += len(page)
-      print 'user: %s --> collected %s following profiles of %s' % (user,following_getting,num_following)
-      for profile in page:
-        relation='following'
-        if profile.id in dict_friends:
-          relation='friend'
-        if relation == 'friend' and not flag_friends:
-          pass
-        else:
-          put_profile (api,user,profile,relation,f_log, f_out)
+      for page in tweepy.Cursor(api.friends,screen_name=user,count=200).pages():
+        check_rate_limits (api,'friends','/friends/list',900)
+        following_getting += len(page)
+        print 'user: %s --> collected %s following profiles of %s' % (user,following_getting,num_following)
+        for profile in page:
+          relation='following'
+          if profile.id in dict_friends:
+            relation='friend'
+          if relation == 'friend' and not flag_friends:
+            pass
+          else:
+            put_profile (api,user,profile,relation,f_log, f_out)
+    except:
+      f_log.write(('%s, %s error en tweepy, method friends/list, user %s\n')  % (time.asctime(),TypeError(),user))
   except:
-    f_log.write(('%s, %s error en tweepy, method friends/list, user %s\n')  % (time.asctime(),TypeError(),user))
+     f_log.write(('%s, %s error en tweepy, /users/show/:id, user %s\n')  % (time.asctime(),TypeError(),user))
   return
 
 def get_tweets(api,user,flag_id_user,f_log,flag_RT):  
@@ -440,9 +446,15 @@ def main():
     print "--> Results in %s_profiles.txt\n" % prefix   
     f_out.write ('id user\tscreen_name\tnet\trelation\tfollowers\tfollowing\tstatuses\tlists\tsine\tname\ttime zone\tlocation\tweb\tavatar\tbio\ttimestamp\n')
     for line in f_users_group_file:
-      user= line.strip("\n")
-      profile=api.get_user( screen_name=user)
-      put_profile (api,user,profile,'root',f_log, f_out)
+      user= line.rstrip('\r\n')
+      check_rate_limits (api,'users','/users/show/:id',900)
+      try:
+        print 'collected profile of %s \n' % user
+        profile=api.get_user( screen_name=user)
+        put_profile (api,user,profile,'root',f_log, f_out)
+      except:
+        print 'wrong profile of %s  \n' % user
+        f_log.write(('%s, %s error en tweepy, /users/show/:id, user %s\n')  % (time.asctime(),TypeError(),user))
     f_out.close()
   if flag_followers:
     name_file_out= '%s_follower_profiles.txt' % (prefix)
@@ -451,7 +463,7 @@ def main():
     f_out.write ('id user\tscreen_name\tnet\trelation\tfollowers\tfollowing\tstatuses\tlists\tsine\tname\ttime zone\tlocation\tweb\tavatar\tbio\ttimestamp\n')
     print "-->Results in %s\n" % (name_file_out)
     for line in f_users_group_file:
-      user= line.strip("\n")
+      user= line.rstrip('\r\n')
       dict_friends= {}
       get_followers (api,user,dict_friends,f_log,f_out,True)
     f_out.close()
@@ -462,7 +474,7 @@ def main():
     f_out.write ('id user\tscreen_name\tnet\trelation\tfollowers\tfollowing\tstatuses\tlists\tsine\tname\ttime zone\tlocation\tweb\tavatar\tbio\ttimestamp\n')
     print "-->Results in %s\n" % (name_file_out)
     for line in f_users_group_file:
-      user= line.strip("\n")
+      user= line.rstrip('\r\n')
       dict_friends= {}
       get_following (api,user,dict_friends,f_log,f_out,True)
     f_out.close()
@@ -472,7 +484,7 @@ def main():
     f_out.write ('id user\tscreen_name\tnet\trelation\tfollowers\tfollowing\tstatuses\tlists\tsine\tname\ttime zone\tlocation\tweb\tavatar\tbio\ttimestamp\n')
     print "-->Results in %s\n" % (name_file_out)
     for line in f_users_group_file:
-      user= line.strip("\n")
+      user= line.rstrip('\r\n')
       dict_friends= get_relation (api,user,f_log)
       get_followers (api,user,dict_friends,f_log,f_out,True)
       get_following (api,user,dict_friends,f_log,f_out,False)
@@ -497,7 +509,7 @@ def main():
     print "-->Results in %s_tweets.txt\n" % prefix
     f_out.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tRT count\tRetweed\tin reply\tfavorite count\tquoted\n')
     for line in f_users_group_file:
-      user= line.strip('\n')
+      user= line.rstrip('\r\n')
       tweets= get_tweets (api,user,flag_id_user,f_log,True) 
       for tweet in tweets:
         f_out.write (tweet)
@@ -507,7 +519,7 @@ def main():
     print "-->Results in %s_h_index.txt\n" % prefix
     f_out.write ('user\th_index\n')
     for line in f_users_group_file:
-      user= line.strip('\n')
+      user= line.rstrip('\r\n')
       tweets= get_tweets (api,user,flag_id_user,f_log,False) 
       h_index= HIndex(user,tweets)
       h=h_index.h()

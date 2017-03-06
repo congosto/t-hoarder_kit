@@ -92,7 +92,7 @@ do
             read fichero
             echo "opción --fast? (s/n)"
             read fast
-            if [ $fast == 's' ]
+            if [ $fast = 's' ]
             then
               fast='--fast'
             else
