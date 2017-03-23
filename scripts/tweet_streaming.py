@@ -84,6 +84,9 @@ class StreamWatcherListener(tweepy.StreamListener):
     if 'delete' in statuse:
       return True # keep stream alive
     if 'id' in statuse:
+      id_tweet = statuse['id']
+      print '---->collected tweet', id_tweet
+      recent_tweet= id_tweet
       statuse_quoted_text=None
       geoloc=None
       url_expanded =None
@@ -95,45 +98,44 @@ class StreamWatcherListener(tweepy.StreamListener):
       name=None
       date=None
       app=None
-      try:
-        id_tweet = statuse['id']
-        recent_tweet= id_tweet
-        profile_user= statuse['user']
-        if 'quoted_status_id' in statuse:
-          print statuse['quoted_status_id']
-          statuse_quoted=statuse['quoted_status']
-          statuse_quoted_text=statuse_quoted['text']
-          statuse_quoted_text=re.sub('[\r\n\t]+', ' ',statuse_quoted_text)
-          print 'tweet nested',statuse_quoted_text
-        if 'coordinates' in statuse:
+      profile_user= statuse['user']
+      if 'quoted_status_id' in statuse:
+        print statuse['quoted_status_id']
+        statuse_quoted=statuse['quoted_status']
+        statuse_quoted_text=statuse_quoted['text']
+        statuse_quoted_text=re.sub('[\r\n\t]+', ' ',statuse_quoted_text)
+        print 'tweet nested',statuse_quoted_text
+      if 'coordinates' in statuse:
           coordinates=statuse['coordinates']
           if coordinates != None:
            list_geoloc = coordinates['coordinates']
            geoloc= '%s, %s' % (list_geoloc[0],list_geoloc[1])
-        if 'entities' in statuse:
-          entities=statuse['entities']
-          urls=entities['urls']
-          if len (urls) >0:
-            url=urls[0]
-            url_expanded= url['expanded_url']
+      if 'entities' in statuse:
+        entities=statuse['entities']
+        urls=entities['urls']
+        if len (urls) >0:
+          url=urls[0]
+          url_expanded= url['expanded_url']
+      try:
         text=re.sub('[\r\n\t]+', ' ',statuse['text'])
-        if profile_user['location'] != None:
-          location=re.sub('[\r\n\t]+', ' ',profile_user['location'],re.UNICODE)
-        if profile_user['description'] != None:
-          description=re.sub('[\r\n\t]+', ' ',profile_user['description'],re.UNICODE)
-        if profile_user['name'] != None:
-          name=re.sub('[\r\n\t]+', ' ',profile_user['name'],re.UNICODE)
+        location=re.sub('[\r\n\t]+', ' ',profile_user['location'],re.UNICODE)
+        description=re.sub('[\r\n\t]+', ' ',profile_user['description'],re.UNICODE)
+        name=re.sub('[\r\n\t]+', ' ',profile_user['name'],re.UNICODE)
         date = parse_datetime(statuse['created_at'])
         app = parse_html_value(statuse['source'])
+      except:
+        pass 
+      try:
         tweet= '%s\t%s\t@%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %  (id_tweet,date,profile_user['screen_name'],text, app,profile_user['id'], profile_user['followers_count'],profile_user['friends_count'],profile_user['statuses_count'],location,url_expanded, geoloc,name,description, url_media,type_media,statuse_quoted_text)
         self.f_out.write(tweet) 
-        print '---->collected tweet', id_tweet
       except:
-        text_error = '---------------> parser error  at %s, id-tweet %s\n' % ( datetime.datetime.now(),statuse)
+        text_error = '---------------> posible unicode error  at %s, id-tweet %s\n' % ( datetime.datetime.now(),statuse.id)
         self.f_log.write (text_error)
+# Catch any unicode errors while printing to console
+# and just ignore them to avoid breaking application.
         pass
     else:
-      text_error = '---------------> message no expected  %s,  %s\n' % ( datetime.datetime.now(),data)
+      text_error = '---------------> posible error datos  %s,  %s\n' % ( datetime.datetime.now(),data)
       self.f_log.write (text_error)
     return True # keep stream alive
 
@@ -213,11 +215,11 @@ def main():
   oauth=oauth_keys(app_keys_file,user_keys_file)
   auth=oauth.get_auth()
   print "autenticated"
-  while True: # Making permanent streaming with exception handling 
+  while True:
     try:
         stream = tweepy.Stream(auth, StreamWatcherListener(dir_dest,prefix,ext,auth))
         stream.filter(follow_list, track_list,False,locations_list_int)
-    except:
+    except Exception as e:
         print "Error. Restarting Stream....  "
         time.sleep(5)
 
@@ -225,4 +227,4 @@ if __name__ == '__main__':
   try:
     main()
   except KeyboardInterrupt:
-    print '\nGoodbye! '
+    print '\nGoodbye!'
