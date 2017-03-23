@@ -26,6 +26,9 @@ from getpass import getpass
 from textwrap import TextWrapper
 import codecs
 import argparse
+from tweepy.utils import import_simplejson
+json = import_simplejson()
+from tweepy.utils import parse_datetime, parse_html_value, parse_a_href
 
 class oauth_keys(object):
   def __init__(self,  app_keys_file,user_keys_file):
@@ -73,68 +76,84 @@ class StreamWatcherListener(tweepy.StreamListener):
     self.f_out= codecs.open(file_out, 'a',encoding='utf-8')
     self.f_log= codecs.open(file_log, 'a',encoding='utf-8')
     if head:
-      self.f_out.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tname\tdescription\turl_media\ttype media\tquoted\n')
-    
-  def on_status(self, statuse):
-    print '---->collected tweet', statuse.id
-    recent_tweet= statuse.id
-    statuse_quoted_text=None
-    geoloc=None
-    url_expanded =None
-    url_media=None
-    type_media=None
-    location=None
-    description=None
-    name=None
 
-    profile_user= statuse.user
-    if hasattr(statuse, 'quoted_status_id'):
-      print statuse.quoted_status_id
-      statuse_quoted=statuse.quoted_status
-      statuse_quoted_text=statuse_quoted.text
-      statuse_quoted_text=re.sub('[\r\n\t]+', ' ',statuse_quoted_text)
-      print 'tweet nested',statuse_quoted_text
-    if hasattr(statuse,'coordinates'):
-      if statuse.coordinates != None:
-        coordinates=statuse.coordinates
-        print coordinates
-        list_geoloc = coordinates['coordinates']
-        geoloc= '%s, %s' % (list_geoloc[0],list_geoloc[1])
-    if hasattr (statuse,'entities'):
-      entities=statuse.entities
-      urls=entities['urls']
-      if len (urls) >0:
-        url=urls[0]
-        url_expanded= url['expanded_url']
-    try:
-      text=re.sub('[\r\n\t]+', ' ',statuse.text)
-      location=re.sub('[\r\n\t]+', ' ',statuse.user.location,re.UNICODE)
-      description=re.sub('[\r\n\t]+', ' ',profile_user['description'],re.UNICODE)
-      name=re.sub('[\r\n\t]+', ' ',profile_user['name'],re.UNICODE)
-    except:
-      pass 
-    try:
-      tweet= '%s\t%s\t@%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %  (statuse.id,statuse.created_at,profile_user.screen_name,text, statuse.source,profile_user.id, profile_user.followers_count,profile_user.friends_count,profile_user.statuses_count,location,url_expanded, geoloc,name,description, url_media,type_media,statuse_quoted_text)
-      self.f_out.write(tweet) 
-    except:
-      text_error = '---------------> posible unicode error  at %s, id-tweet %s\n' % ( datetime.datetime.now(),statuse.id)
-      self.f_log.write_log (text_error)
-# Catch any unicode errors while printing to console
-# and just ignore them to avoid breaking application.
-      pass
-    return
+      self.f_out.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tname\tdescription\turl_media\ttype media\tquoted\n')
+  
+  def on_data(self, data):
+    statuse = json.loads(data)
+    if 'delete' in statuse:
+      return True # keep stream alive
+    if 'id' in statuse:
+      statuse_quoted_text=None
+      geoloc=None
+      url_expanded =None
+      url_media=None
+      type_media=None
+      text=None
+      location=None
+      description=None
+      name=None
+      date=None
+      app=None
+      try:
+        id_tweet = statuse['id']
+        recent_tweet= id_tweet
+        profile_user= statuse['user']
+        if 'quoted_status_id' in statuse:
+          print statuse['quoted_status_id']
+          statuse_quoted=statuse['quoted_status']
+          statuse_quoted_text=statuse_quoted['text']
+          statuse_quoted_text=re.sub('[\r\n\t]+', ' ',statuse_quoted_text)
+          print 'tweet nested',statuse_quoted_text
+        if 'coordinates' in statuse:
+          coordinates=statuse['coordinates']
+          if coordinates != None:
+           list_geoloc = coordinates['coordinates']
+           geoloc= '%s, %s' % (list_geoloc[0],list_geoloc[1])
+        if 'entities' in statuse:
+          entities=statuse['entities']
+          urls=entities['urls']
+          if len (urls) >0:
+            url=urls[0]
+            url_expanded= url['expanded_url']
+        text=re.sub('[\r\n\t]+', ' ',statuse['text'])
+        if profile_user['location'] != None:
+          location=re.sub('[\r\n\t]+', ' ',profile_user['location'],re.UNICODE)
+        if profile_user['description'] != None:
+          description=re.sub('[\r\n\t]+', ' ',profile_user['description'],re.UNICODE)
+        if profile_user['name'] != None:
+          name=re.sub('[\r\n\t]+', ' ',profile_user['name'],re.UNICODE)
+        date = parse_datetime(statuse['created_at'])
+        app = parse_html_value(statuse['source'])
+        tweet= '%s\t%s\t@%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %  (id_tweet,date,profile_user['screen_name'],text, app,profile_user['id'], profile_user['followers_count'],profile_user['friends_count'],profile_user['statuses_count'],location,url_expanded, geoloc,name,description, url_media,type_media,statuse_quoted_text)
+        self.f_out.write(tweet) 
+        print '---->collected tweet', id_tweet
+      except:
+        text_error = '---------------> parser error  at %s, id-tweet %s\n' % ( datetime.datetime.now(),statuse)
+        self.f_log.write (text_error)
+        pass
+    else:
+      text_error = '---------------> message no expected  %s,  %s\n' % ( datetime.datetime.now(),data)
+      self.f_log.write (text_error)
+    return True # keep stream alive
 
   def on_error(self, status_code):
- #   print 'paso por on_error\n'
+    #print 'paso por on_error\n'
     text_error = '---------------->An error has occured! Status code = %s at %s\n' % (status_code,datetime.datetime.now())
-    self.files.write_log (text_error)
+    self.f_log.write (text_error)
+    print text_error
+    return True # keep stream alive
+
+  def on_exception(self,exception):
+    text_error = '---------------->An excepcion has occured!  = %s at %s\n' % (exception,datetime.datetime.now())
+    self.f_log.write (text_error)
     print text_error
     return True # keep stream alive
  
   def on_timeout(self):
- #   print 'paso por on_timeout\n'
+    #print 'paso por on_timeout\n'
     text_error = 'Snoozing Zzzzzz at %s\n' % ( datetime.datetime.now())
-    self.files.write_log (text_error)
+    self.f_log.write (text_error)
     print text_error
     return False #restart streaming
 
@@ -194,10 +213,13 @@ def main():
   oauth=oauth_keys(app_keys_file,user_keys_file)
   auth=oauth.get_auth()
   print "autenticated"
-  stream = tweepy.Stream(auth, StreamWatcherListener(dir_dest,prefix,ext,auth), timeout=None)
-  # Prompt for mode of streaming
-  print follow_list,track_list,locations_list_int
-  stream.filter(follow_list, track_list,False,locations_list_int)
+  while True:
+    try:
+        stream = tweepy.Stream(auth, StreamWatcherListener(dir_dest,prefix,ext,auth))
+        stream.filter(follow_list, track_list,False,locations_list_int)
+    except Exception as e:
+        print "Error. Restarting Stream....  "
+        time.sleep(5)
 
 if __name__ == '__main__':
   try:
