@@ -329,17 +329,20 @@ def main():
       if num_line % 10000 == 0:
         print num_line 
       line=line.strip('\n')
-      data=line.split('\t') 
-      author=data[2].lower()
-      text=data[3].lower()
-      followers=get_number(data[6])
-      following=get_number(data[7])
-      statuses=get_number(data[8])
-      info_author= (author,followers,following,statuses)
-      relation.set_author (author,info_author)
-      list_relations= relation.get_relation (text,type_relation)
-      if len(list_relations) > 0:
-        relation.set_relation (author,text, list_relations,type_relation)
+      data=line.split('\t')
+      if len(data) > 4 : 
+        author=data[2].lower()
+        text=data[3].lower()
+        followers=get_number(data[6])
+        following=get_number(data[7])
+        statuses=get_number(data[8])
+        info_author= (author,followers,following,statuses)
+        relation.set_author (author,info_author)
+        list_relations= relation.get_relation (text,type_relation)
+        if len(list_relations) > 0:
+          relation.set_relation (author,text, list_relations,type_relation)
+      else:
+        print 'No mactch',line
  #extract and print top 
  
   relation.get_top_authors () 
@@ -357,11 +360,12 @@ def main():
         print num_line 
       line=line.strip('\n')
       data=line.split('\t') 
-      author=data[2].lower()
-      text=data[3].lower()
-      list_relations= relation.get_relation (text,type_relation)
-      if len(list_relations) > 0:
-        relation.set_relation_nodes (author,text, list_relations,type_relation)
+      if len(data) > 4 :
+        author=data[2].lower()
+        text=data[3].lower()
+        list_relations= relation.get_relation (text,type_relation)
+        if len(list_relations) > 0:
+          relation.set_relation_nodes (author,text, list_relations,type_relation)
   print 'format gdf'
   relation.get_format_gdf ('top')
   relation.get_format_gdf ('all')
