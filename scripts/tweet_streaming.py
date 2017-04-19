@@ -63,8 +63,6 @@ class StreamWatcherListener(tweepy.StreamListener):
   def __init__(self,dir_dest,prefix,ext,auth):
     self.start_time= time.time()
     self.last_time= self.start_time
-    self.n_tweets=0 
-    self.MAX_SIZE=100000000  
     self.api = tweepy.API(auth)
     head=False
     file_out='%s/%s.%s' % (dir_dest,prefix,ext)
