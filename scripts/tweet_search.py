@@ -78,7 +78,7 @@ def check_rate_limits (api,type_resource,method,wait):
     time.sleep(wait) 
   return 
 
-def tweet_search (api,file_out,query,language):
+def tweet_search (api,file_out,query):
 
   tweets_list=[]
   f=codecs.open(file_out, 'a',encoding='utf-8',errors='ignore') 
@@ -118,27 +118,35 @@ def tweet_search (api,file_out,query,language):
       location=None
       description=None
       name=None
-
       profile_user= statuse.user
-      if hasattr(statuse, 'quoted_status_id'):
-        if statuse.coordinates != None:
-          print statuse.quoted_status_id
-          statuse_quoted=statuse.quoted_status
-          statuse_quoted_text=statuse_quoted.text
-          statuse_quoted_text=re.sub('[\r\n\t]+', ' ',statuse_quoted_text)
-          print 'tweet nested',statuse_quoted_text
-      if hasattr(statuse,'coordinates'):
-        if statuse.coordinates != None:
-          coordinates=statuse.coordinates
-          print coordinates
-          list_geoloc = coordinates['coordinates']
-          geoloc= '%s, %s' % (list_geoloc[0],list_geoloc[1])
-      if hasattr (statuse,'entities'):
-        entities=statuse.entities
-        urls=entities['urls']
-        if len (urls) >0:
-          url=urls[0]
-          url_expanded= url['expanded_url']
+      try:
+        if hasattr(statuse, 'quoted_status_id'):
+          if statuse.coordinates != None:
+            print statuse.quoted_status_id
+            statuse_quoted=statuse.quoted_status
+            statuse_quoted_text=statuse_quoted.text
+            statuse_quoted_text=re.sub('[\r\n\t]+', ' ',statuse_quoted_text)
+            print 'tweet nested',statuse_quoted_text
+      except:
+        pass
+      try:
+        if hasattr(statuse,'coordinates'):
+          if statuse.coordinates != None:
+            coordinates=statuse.coordinates
+            print coordinates
+            list_geoloc = coordinates['coordinates']
+            geoloc= '%s, %s' % (list_geoloc[0],list_geoloc[1])
+      except:
+        pass
+      try:
+        if hasattr (statuse,'entities'):
+          entities=statuse.entities
+          urls=entities['urls']
+          if len (urls) >0:
+            url=urls[0]
+            url_expanded= url['expanded_url']
+      except:
+        pass
       text=re.sub('[\r\n\t]+', ' ',statuse.text)
       try:
         location=re.sub('[\r\n\t]+', ' ',statuse.user.location,re.UNICODE)
@@ -178,16 +186,14 @@ def main():
   parser.add_argument('keys_user', type=str, help='file with user keys')
   parser.add_argument('--query', type=str, help='query')
   parser.add_argument('--file_out', type=str,default='tweet_store.txt', help='name file out')
-  parser.add_argument('--language',  type=str,default='es',help='language select')
-
+  
   #obtego los argumentos
   args = parser.parse_args()
   app_keys_file= args.keys_app
   user_keys_file= args.keys_user
   query= args.query
   file_out=args.file_out
-  language=args.language
-  #print query,file_out,language
+  #print query,file_out
   #autenticación con oAuth     
   user_keys= oauth_keys(app_keys_file,user_keys_file)
   api= oauth_keys.get_access(user_keys)
@@ -196,7 +202,7 @@ def main():
   if not filename:
     print "bad filename",file_out
     exit (1)
-  tweet_search (api,file_out,query,language)
+  tweet_search (api,file_out,query)
   exit(0)
 
 if __name__ == '__main__':

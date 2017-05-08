@@ -330,7 +330,7 @@ def main():
         print num_line 
       line=line.strip('\n')
       data=line.split('\t')
-      if len(data) > 4 : 
+      if len(data) > 9 : 
         author=data[2].lower()
         text=data[3].lower()
         followers=get_number(data[6])
