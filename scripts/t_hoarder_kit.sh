@@ -15,18 +15,39 @@
 
 option=7
 salir='n'
-
+echo " "
+echo "----------------------------------------"
+echo "------> Welcome to t-hoarder kit <------"
+echo "----------------------------------------"
 file_t_hoarder_kit=`which t_hoarder_kit.sh`
 path_t_hoarder_kit=${file_t_hoarder_kit%/*}
 cd $path_t_hoarder_kit
 cd  ..
 root=`pwd`
+cd $root
+status=`git status`
+
+if [[ $status == *"behind"* ]];
+then
+   echo "There are updates from t-hoarder_kit, do you want to install them (y/n)?"
+   read response
+   if [ $response == 'y' ];
+   then
+      echo "Actualizando versión"
+      git pull
+      chmod +x scripts/*
+      echo "t-hoarder_kit is up to date"
+      echo " Please, enter <ctrl> c to exit and start again"
+   fi
+else
+  echo "t-hoarder_kit is up to date"
+fi
+
 echo "working in ${root}"
-
+echo " "
 echo "----------------------------------------"
-echo "------> Welcome to t-hoarder kit <------"
+echo "------>       Environment  data  <------"
 echo "----------------------------------------"
-
 while true
 do
   echo "Enter the file name with the application keys: "
