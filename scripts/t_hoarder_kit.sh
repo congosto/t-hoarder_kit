@@ -13,45 +13,73 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-opcion=7
+option=7
 salir='n'
 
-cd /home/taller/api_twitter
+file_t_hoarder_kit=`which t_hoarder_kit.sh`
+path_t_hoarder_kit=${file_t_hoarder_kit%/*}
+cd $path_t_hoarder_kit
+cd  ..
+root=`pwd`
+echo "working in ${root}"
 
 echo "----------------------------------------"
-echo "------>Bienvenido a t-hoarder kit<------"
+echo "------> Welcome to t-hoarder kit <------"
 echo "----------------------------------------"
 
-echo "Escribe el nombre del fichero con las claves de la aplicación: "
-read app_key
+while true
+do
+  echo "Enter the file name with the application keys: "
+  read app_key
+  if [ -f ${root}/keys/${app_key} ]
+  then 
+    break
+  else
+    echo "${root}/keys/${app_key} does not exist"
+  fi
+done
 
-echo "Escribe el usuario de twitter: "
-read usuario
+echo "Enter a twitter user: "
+read user
 
-echo "Escribe el experimento: "
-read experimento
+while true
+do
+  echo "Enter experiment name: "
+  read experiment
+  if [ -d ${root}/store/${experiment} ]
+  then 
+    break
+  else
+    echo "${root}/store/${experiment} does not exist "
+  fi
+done
 
 while test $salir != 's'
 do
-
+    
     echo "------------------------------"
-    echo "¿Que operación desea realizar?"
+    echo " Working with:"
+    echo "   app: ${app_key}"
+    echo "   user: ${user}"
+    echo "   experiment: ${experiment}"
     echo "------------------------------"
-    echo "1.Autentificar"
-    echo "2.Obtener información de usuarios (profile | followers | following | relations | tweets | h_index)"
-    echo "3.Realizar búsquedas en twitter"
-    echo "4.Obtener tweets en tiempo real"
-    echo "5.Generar grafo de relaciones declaradas (followers o following o ambos)"
-    echo "6.Generar grafo de relaciones dinámicas (RTs, reply o menciones)"
-    echo "7.Obtener el klout"
-    echo "8.Salir"
+    echo "What function do you want to run?"
+    echo "------------------------------"
+    echo "1. Get a user's token access"
+    echo "2. Get users information (profile | followers | following | relations | tweets | h_index)"
+    echo "3. Make a query on Twitter"
+    echo "4. Get tweets on real time"
+    echo "5. Generate the declared relations graph (followers or following or both)"
+    echo "6. Generate the dynamic relations graph (RTs | reply | mentions)"
+    echo "7. Processing tweets (entities| classify| users | spread)"
+    echo "8. Exit"
     echo " "
-    echo "--> Introduzca número de opción: "
+    echo "--> Enter option: "
     echo " "
 
-    read opcion
+    read option
 
-    case $opcion in
+    case $option in
         1)
             cd keys            
             tweet_auth.py $app_key $usuario
@@ -60,36 +88,36 @@ do
 
         2)
         
-            echo "Introduce el nombre del fichero con la lista de usuarios (cada usuario en una línea): "
-            read fichero
-            echo "Introduce el tipo de información (profile | followers | following | relations | tweets | h_index): "
+            echo "Enter input file name with the list of users (each user in a line): "
+            read file
+            echo "Enter a type of information (profile | followers | following | relations | tweets | h_index): "
             read option
-            tweet_rest.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experimento/$fichero" --$option 
+            tweet_rest.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/$file" --$option 
         ;;
 
         3)    
-            echo "Introduce la query (admite conectores AND / OR): "
-            read palabra
-            echo "Introduce el nombre del fichero destino: "
-            read fichero
+            echo "Enter a query (allows AND / OR connectors): "
+            read query
+            echo "Enter output file name: "
+            read outputfile
 
-            tweet_search.py "./keys/$app_key" "./keys/$usuario.key" --query "$palabra" --file_out "./store/$experimento/$fichero"
+            tweet_search.py "./keys/$app_key" "./keys/$usuario.key" --query "$query" --file_out "./store/$experiment/$outputfile"
         ;;
 
         4)
         
-            echo "Introduce el nombre del fichero con las palabras clave separadas por , : "
-            read fichero
-            echo "Introduce el nombre del fichero destino: "
-            read fich_destino
+            echo "Enter input file name with the keywords separated by , : "
+            read file
+            echo "Enter output file name: "
+            read outputfile
 
-            tweet_streaming.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experimento/" $fich_destino --words "./store/$experimento/$fichero"
+            tweet_streaming.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/" $outputfile --words "./store/$experiment/$outputfile"
         ;;
 
         5)
         
-            echo "Introduce el nombre del fichero con los perfiles de los usuarios: "
-            read fichero
+            echo "Enter input file name with the users profiles (It is necessary to get before the users profiles): "
+            read file
             echo "opción --fast? (s/n)"
             read fast
             if [ $fast = 's' ]
@@ -99,30 +127,43 @@ do
               fast=''
             fi
 
-            tweet_rest.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experimento/$fichero" "--connections" $fast
+            tweet_rest.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/$file" "--connections" $fast
 
         ;;
         6)
         
-            echo "Introduce el nombre del fichero con los tweets: "
-            read fichero
-            echo "Introduce el tipo de relación (RT | reply | mention): "
+            echo "Enter input file name with the tweets (got from a query or in real time): "
+            read file
+            echo "Enter the relationship type (RT | reply | mention): "
             read relation
             echo "Introduce top size (100-50000):"
             read top
 
-            tweets_grafo.py "./store/$experimento/$fichero" "--$relation" "--top_size" $top
+            tweets_grafo.py "./store/$experiment/$file" "--$relation" "--top_size" $top
         ;;
 
-		7)
-        
-            echo "Introduce el nombre del fichero con la lista de usuarios (cada usuario en una línea): "
-            read fichero
-            echo "Introduce tu  API de Klout:"
-            read APIkey
+	7)
+            echo "Enter input file name with the tweets (got from a query or in real time): "
+            read file
+	    echo "Enter option (got from a query or in real time): "
+            read option_processing
 
-            user_klout.py "./store/$experimento/$fichero" "$APIkey"
+              case $option_processing in
+                  entities)
+		  echo "in construccion"
+		  ;;
+		  classify)
+		  echo "in construccion"
+		  ;;
+		  users)
+		  echo "in construccion"
+		  ;;
+		  spread)
+		  echo "in construccion"
+		  ;;
 
+
+              esac
         ;;
 
         8)
