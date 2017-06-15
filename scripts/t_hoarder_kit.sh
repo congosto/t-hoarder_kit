@@ -27,13 +27,13 @@ root=`pwd`
 cd $root
 status=`git status`
 
-if [[ $status == *"behind"* ]];
+if [ ${status} = *"git pull"* ];
 then
    echo "There are updates from t-hoarder_kit, do you want to install them (y/n)?"
    read response
-   if [ $response == 'y' ];
+   if [ $response = 'y' ];
    then
-      echo "Actualizando versión"
+      echo "Upgrading changes"
       git pull
       chmod +x scripts/*
       echo "t-hoarder_kit is up to date"
