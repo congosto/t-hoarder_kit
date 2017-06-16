@@ -20,12 +20,13 @@ echo " "
 echo "----------------------------------------"
 echo "------> Welcome to t-hoarder kit <------"
 echo "----------------------------------------"
-file_t_hoarder_kit=`which t_hoarder_kit.sh`
+file_t_hoarder_kit=`find -name t_hoarder_kit.sh`
 path_t_hoarder_kit=${file_t_hoarder_kit%/*}
 cd $path_t_hoarder_kit
 cd  ..
 root=`pwd`
 cd $root
+git fetch origin master  > /dev/null  2>&1
 status=`git status`
 
 if [ "${status}" = "*git pull*" ];
