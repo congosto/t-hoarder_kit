@@ -14,7 +14,7 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-option=7
+option=8
 salir='n'
 echo " "
 echo "----------------------------------------"
@@ -29,9 +29,10 @@ cd $root
 git fetch origin master  > /dev/null  2>&1
 status=`git status`
 
-if [ "${status}" = "*git pull*" ];
+if git status | grep "git pull" > /dev/null;
 then
    echo "There are updates from t-hoarder_kit, do you want to install them (y/n)?"
+   echo "Note that if the scripts have been modified, the update will fail"
    read response
    if [ "$response" = "y" ];
    then
@@ -53,7 +54,7 @@ while true
 do
   echo "Enter the file name with the application keys: "
   read app_key
-  if [ -f ${root}/keys/${app_key} ]
+  if [ -f ${root}/keys/${app_key} ];
   then 
     break
   else
@@ -68,7 +69,7 @@ while true
 do
   echo "Enter experiment name: "
   read experiment
-  if [ -d ${root}/store/${experiment} ]
+  if [ -d ${root}/store/${experiment} ];
   then 
     break
   else
@@ -104,7 +105,7 @@ do
     case $option in
         1)
             cd keys            
-            python ${root}/scripts/tweet_auth.py $app_key $usuario
+            python ${root}/scripts/tweet_auth.py "$app_key" "$usuario"
             cd ..
         ;;
 
@@ -114,7 +115,7 @@ do
             read file
             echo "Enter a type of information (profile | followers | following | relations | tweets | h_index): "
             read option
-            python ${root}/scripts/tweet_rest.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/$file" --$option 
+            python ${root}/scripts/tweet_rest.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/$file" "--$option" 
         ;;
 
         3)    
@@ -123,7 +124,7 @@ do
             echo "Enter output file name: "
             read outputfile
 
-            python ${root}/scripts/tweet_search.py "./keys/$app_key" "./keys/$usuario.key" --query "$query" --file_out "./store/$experiment/$outputfile"
+            python ${root}/scripts/tweet_search.py "./keys/$app_key" "./keys/$usuario.key" "--query" "$query" "--file_out" "./store/$experiment/$outputfile"
         ;;
 
         4)
@@ -133,7 +134,7 @@ do
             echo "Enter output file name: "
             read outputfile
 
-            python ${root}/scripts/tweet_streaming.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/" $outputfile --words "./store/$experiment/$outputfile"
+            python ${root}/scripts/tweet_streaming.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/" "$outputfile" "--words" "./store/$experiment/$outputfile"
         ;;
 
         5)
@@ -149,7 +150,7 @@ do
               fast=''
             fi
 
-            python ${root}/scripts/tweet_rest.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/$file" "--connections" $fast
+            python ${root}/scripts/tweet_rest.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/$file" "--connections" "$fast"
 
         ;;
         6)
@@ -161,30 +162,28 @@ do
             echo "Introduce top size (100-50000):"
             read top
 
-            python ${root}/scripts/tweets_grafo.py "./store/$experiment/$file" "--$relation" "--top_size" $top
+            python ${root}/scripts/tweets_grafo.py "./store/$experiment/$file" "--$relation" "--top_size" "$top"
         ;;
 
-	7)
+       7)
             echo "Enter input file name with the tweets (got from a query or in real time): "
             read file
-	    echo "Enter option (got from a query or in real time): "
+            echo "Enter option (got from a query or in real time): "
             read option_processing
 
               case $option_processing in
                   entities)
-		  echo "in construccion"
-		  ;;
-		  classify)
-		  echo "in construccion"
-		  ;;
-		  users)
-		  echo "in construccion"
-		  ;;
-		  spread)
-		  echo "in construccion"
-		  ;;
-
-
+                    echo "in construccion"
+                  ;;
+                  classify)
+                    echo "in construccion"
+                  ;;
+                  users)
+                    echo "in construccion"
+                  ;;
+                 spread)
+                    echo "in construccion"
+                 ;;
               esac
         ;;
 
@@ -193,8 +192,3 @@ do
         ;;
     esac
 done
-
-
-        
-
-    
