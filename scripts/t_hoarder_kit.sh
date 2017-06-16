@@ -134,7 +134,7 @@ do
             echo "Enter output file name: "
             read outputfile
 
-            python ${root}/scripts/tweet_streaming.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/" "$outputfile" "--words" "./store/$experiment/$outputfile"
+            python ${root}/scripts/tweet_streaming.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/" "$file" "--words" "./store/$experiment/$outputfile"
         ;;
 
         5)
