@@ -104,7 +104,7 @@ do
     case $option in
         1)
             cd keys            
-            python tweet_auth.py $app_key $usuario
+            python ${root}/scripts/tweet_auth.py $app_key $usuario
             cd ..
         ;;
 
@@ -114,7 +114,7 @@ do
             read file
             echo "Enter a type of information (profile | followers | following | relations | tweets | h_index): "
             read option
-            python tweet_rest.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/$file" --$option 
+            python ${root}/scripts/tweet_rest.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/$file" --$option 
         ;;
 
         3)    
@@ -123,7 +123,7 @@ do
             echo "Enter output file name: "
             read outputfile
 
-            python tweet_search.py "./keys/$app_key" "./keys/$usuario.key" --query "$query" --file_out "./store/$experiment/$outputfile"
+            python ${root}/scripts/tweet_search.py "./keys/$app_key" "./keys/$usuario.key" --query "$query" --file_out "./store/$experiment/$outputfile"
         ;;
 
         4)
@@ -133,7 +133,7 @@ do
             echo "Enter output file name: "
             read outputfile
 
-            python tweet_streaming.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/" $outputfile --words "./store/$experiment/$outputfile"
+            python ${root}/scripts/tweet_streaming.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/" $outputfile --words "./store/$experiment/$outputfile"
         ;;
 
         5)
@@ -149,7 +149,7 @@ do
               fast=''
             fi
 
-            python tweet_rest.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/$file" "--connections" $fast
+            python ${root}/scripts/tweet_rest.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/$file" "--connections" $fast
 
         ;;
         6)
@@ -161,7 +161,7 @@ do
             echo "Introduce top size (100-50000):"
             read top
 
-            python tweets_grafo.py "./store/$experiment/$file" "--$relation" "--top_size" $top
+            python ${root}/scripts/tweets_grafo.py "./store/$experiment/$file" "--$relation" "--top_size" $top
         ;;
 
 	7)
