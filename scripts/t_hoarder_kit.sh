@@ -134,7 +134,7 @@ do
             echo "Enter output file name: "
             read outputfile
 
-            python ${root}/scripts/tweet_streaming.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/" "$file" "--words" "./store/$experiment/$outputfile"
+            python ${root}/scripts/tweet_streaming.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/" "$outputfile" "--words" "./store/$experiment/$file"
         ;;
 
         5)
@@ -168,7 +168,7 @@ do
        7)
             echo "Enter input file name with the tweets (got from a query or in real time): "
             read file
-            echo "Enter option (got from a query or in real time): "
+            echo "Enter option (entities| classify| users | spread): "
             read option_processing
 
               case $option_processing in
