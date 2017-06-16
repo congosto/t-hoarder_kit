@@ -28,15 +28,14 @@ root=`pwd`
 cd $root
 status=`git status`
 
-if [ ${status} = *"git pull"* ];
+if [ "${status}" = "*git pull*" ];
 then
    echo "There are updates from t-hoarder_kit, do you want to install them (y/n)?"
    read response
-   if [ $response = 'y' ];
+   if [ "$response" = "y" ];
    then
       echo "Upgrading changes"
       git pull
-      chmod +x scripts/*
       echo "t-hoarder_kit is up to date"
       echo " Please, enter <ctrl> c to exit and start again"
    fi
@@ -104,7 +103,7 @@ do
     case $option in
         1)
             cd keys            
-            tweet_auth.py $app_key $usuario
+            python tweet_auth.py $app_key $usuario
             cd ..
         ;;
 
@@ -114,7 +113,7 @@ do
             read file
             echo "Enter a type of information (profile | followers | following | relations | tweets | h_index): "
             read option
-            tweet_rest.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/$file" --$option 
+            python tweet_rest.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/$file" --$option 
         ;;
 
         3)    
@@ -123,7 +122,7 @@ do
             echo "Enter output file name: "
             read outputfile
 
-            tweet_search.py "./keys/$app_key" "./keys/$usuario.key" --query "$query" --file_out "./store/$experiment/$outputfile"
+            python tweet_search.py "./keys/$app_key" "./keys/$usuario.key" --query "$query" --file_out "./store/$experiment/$outputfile"
         ;;
 
         4)
@@ -133,7 +132,7 @@ do
             echo "Enter output file name: "
             read outputfile
 
-            tweet_streaming.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/" $outputfile --words "./store/$experiment/$outputfile"
+            python tweet_streaming.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/" $outputfile --words "./store/$experiment/$outputfile"
         ;;
 
         5)
@@ -149,7 +148,7 @@ do
               fast=''
             fi
 
-            tweet_rest.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/$file" "--connections" $fast
+            python tweet_rest.py "./keys/$app_key" "./keys/$usuario.key" "./store/$experiment/$file" "--connections" $fast
 
         ;;
         6)
@@ -161,7 +160,7 @@ do
             echo "Introduce top size (100-50000):"
             read top
 
-            tweets_grafo.py "./store/$experiment/$file" "--$relation" "--top_size" $top
+            python tweets_grafo.py "./store/$experiment/$file" "--$relation" "--top_size" $top
         ;;
 
 	7)
