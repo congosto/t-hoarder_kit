@@ -20,8 +20,8 @@ import os
 import re
 import sys
 import time
-import datetime
 import tweepy
+from datetime import datetime
 import codecs
 import argparse
 
@@ -32,6 +32,7 @@ class oauth_keys(object):
     self.user_keys_file = user_keys_file
     self.app_keys=[]
     self.user_keys=[]
+    self.dict_ratelimit={}
     
     f = open(self.app_keys_file, 'rU')
     for line in f: 
@@ -54,37 +55,42 @@ class oauth_keys(object):
       exit(83)
     return api 
     
-def check_rate_limits (api,type_resource,method,wait):
-  reintentos=0
-  while reintentos < 2:
+  def get_rate_limits (self,api,type_resource,method,wait):
     try:
       result = api.rate_limit_status(resources=type_resource)
-      #print result
-      break
+      resources=result['resources']
+      resource=resources[type_resource]
+      rate_limit=resource[method]
+      limit=int(rate_limit['limit'])
+      remaining_hits=int(rate_limit['remaining'])
+      if remaining_hits <1:
+        print 'waiting for 15 minutes ->' + str(datetime.now())
+        time.sleep(wait)
+      self.dict_ratelimit[(type_resource,method)]= remaining_hits
+      print 'remaing hits',remaining_hits
     except:
-      reintentos += 1
-    
-  if reintentos == 2:
-    remaining_hits= 0
-  else:
-   resources=result['resources']
-   resource=resources[type_resource]
-   rate_limit=resource[method]
-   limit=int(rate_limit['limit'])
-   remaining_hits=int(rate_limit['remaining'])
-   print 'remaing hits',remaining_hits
-  if remaining_hits <3: 
-    print 'ratelimit, waiting for 15 minutes'
-    time.sleep(wait) 
-  return 
+      print 'excepction cheking ratelimit, waiting for 15 minutes ->' + str(datetime.now())
+      print 'If the same error occurred after 15 minutes, please abort the command and check the app-user access keys'
+      time.sleep(wait)
+    return
+ 
+  def check_rate_limits (self,api,type_resource,method,wait):
+    if (type_resource,method) not in self.dict_ratelimit:
+      self.get_rate_limits (api,type_resource,method,wait)
+    else:
+      self.dict_ratelimit[(type_resource,method)]-= 1
+      print 'remaing hits',self.dict_ratelimit[(type_resource,method)]
+      if self.dict_ratelimit[(type_resource,method)] <1 :
+        self.get_rate_limits (api,type_resource,method,wait)
+    return 
 
-def tweet_search (api,file_out,query):
+def tweet_search (user_keys,api,file_out,query):
 
   tweets_list=[]
   f=codecs.open(file_out, 'a',encoding='utf-8',errors='ignore') 
   print 'results in %s\n' % file_out
   f_log= open(file_out+'.log','a')
-  f_log.write(('%s\t') % ( datetime.datetime.now()))
+  f_log.write(('%s\t') % ( datetime.now()))
  
   recent_tweet=1000
   n_tweets=0
@@ -92,8 +98,8 @@ def tweet_search (api,file_out,query):
   hay_tweets=True
   f.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tname\tdescription\turl_media\ttype media\tquoted\n')
   while hay_tweets:
+    oauth_keys.check_rate_limits (user_keys,api,'search','/search/tweets',900)
     try:
-      check_rate_limits (api,'search','/search/tweets',900)
       if first_tweet:
         #print 'since_id', recent_tweet
         page = api.search(query, since_id=recent_tweet,include_entities=True,result_type='recent',count=100)  
@@ -202,7 +208,7 @@ def main():
   if not filename:
     print "bad filename",file_out
     exit (1)
-  tweet_search (api,file_out,query)
+  tweet_search (user_keys,api,file_out,query)
   exit(0)
 
 if __name__ == '__main__':
