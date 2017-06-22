@@ -73,6 +73,12 @@ class oauth_keys(object):
       if remaining_hits < 1:
         print 'waiting for 15 minutes ->' + str(datetime.now())
         time.sleep(wait)
+      result = api.rate_limit_status(resources=type_resource)
+      resources=result['resources']
+      resource=resources[type_resource]
+      rate_limit=resource[method]
+      limit=int(rate_limit['limit'])
+      remaining_hits=int(rate_limit['remaining'])
       self.dict_ratelimit[(type_resource,method)]= remaining_hits
       print 'remaing hits',remaining_hits
     except:
@@ -241,7 +247,8 @@ def get_followers(user_keys,api,user,dict_friends,f_log,f_out,friends):
     num_followers=profile.followers_count
     put_profile (api,user,profile,'root',f_log, f_out)
     followers_getting=0
-    try:
+    #try:
+    if True:
       print 'user: %s --> getting %s followers profiles' % (user,num_followers)
       oauth_keys.check_rate_limits (user_keys,api,'followers','/followers/list',900)
       for page in tweepy.Cursor(api.followers,screen_name=user,count=200).pages():
@@ -256,7 +263,8 @@ def get_followers(user_keys,api,user,dict_friends,f_log,f_out,friends):
             pass
           else:
             put_profile (api,user,profile,relation,f_log, f_out)
-    except:
+    else:
+    #except:
       f_log.write(('%s, %s error en tweepy, method followers/list, user %s\n')  % (time.asctime(),TypeError(),user))
   except:
      f_log.write(('%s, %s error en tweepy, /users/show/:id, user %s\n')  % (time.asctime(),TypeError(),user))
@@ -557,4 +565,7 @@ def main():
 
 
 if __name__ == '__main__':
-  main()
+  try:
+    main()
+  except KeyboardInterrupt:
+    print '\nGoodbye! '

@@ -87,6 +87,11 @@ class oauth_keys(object):
 def tweet_search (user_keys,api,file_out,query):
 
   tweets_list=[]
+  head=False
+  try:
+    f=codecs.open(file_out, 'ru',encoding='utf-8',errors='ignore') 
+  except:
+    head=True
   f=codecs.open(file_out, 'a',encoding='utf-8',errors='ignore') 
   print 'results in %s\n' % file_out
   f_log= open(file_out+'.log','a')
@@ -96,7 +101,8 @@ def tweet_search (user_keys,api,file_out,query):
   n_tweets=0
   first_tweet=True
   hay_tweets=True
-  f.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tname\tdescription\turl_media\ttype media\tquoted\n')
+  if head:
+    f.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tname\tdescription\turl_media\ttype media\tquoted\n')
   while hay_tweets:
     oauth_keys.check_rate_limits (user_keys,api,'search','/search/tweets',900)
     try:

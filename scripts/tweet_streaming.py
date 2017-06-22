@@ -212,10 +212,14 @@ def main():
   oauth=oauth_keys(app_keys_file,user_keys_file)
   auth=oauth.get_auth()
   print "autenticated"
-  while True: # Making permanent streaming with exception handling 
+  exit=False
+  while not exit: # Making permanent streaming with exception handling 
     try:
         stream = tweepy.Stream(auth, StreamWatcherListener(dir_dest,prefix,ext,auth))
         stream.filter(follow_list, track_list,False,locations_list_int)
+    except KeyboardInterrupt:
+       print '\nGoodbye! '
+       exit = True
     except:
         print "Error. Restarting Stream....  "
         time.sleep(5)
