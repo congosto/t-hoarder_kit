@@ -15,9 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see
 # <http://www.gnu.org/licenses/>.
+import os
+import rlcompleter
 import readline
 import sys
-import os.path
+#import os.path
 import codecs
 import argparse
 
@@ -88,9 +90,17 @@ def main():
   list_suboptions_2= ['profile','followers','following','relations','tweets','h_index']
   list_suboptions_6= ['RT','reply','mentions']
   list_suboptions_7= ['entities','classify','users','spread']
-  global enviroment
+  enviroment=False
   option=8
   exit='n'
+  histfile = os.path.join(os.path.expanduser("~"), ".pyhist")
+  readline.parse_and_bind("tab: complete")
+  try:
+    readline.read_history_file(histfile)
+    # default history len is -1 (infinite), which may grow unruly
+    readline.set_history_length(1000)
+  except IOError:
+    pass
   if not enviroment: 
     print  'working in', root
     print  ' '
@@ -106,100 +116,98 @@ def main():
   file_user_keys= '%s%s.key' % (path_keys,user)
   if args.windows:
     path_experiment = '%s%s\\' % (path_store,experiment)
+    path_resources = '%s\resources\\' % (root)
   elif args.linux or args.mac:
     path_experiment='%s%s/' % (path_store,experiment)
+    path_resources = '%s/resources/' % (root)
 
-  while exit != 's':
-    print '------------------------------'
-    print ' Working with:'
-    print '   app:',app_keys
-    print '   user:',user
-    print '   experiment:' ,experiment
-    print '------------------------------'
-    print 'What function do you want to run?'
-    print '------------------------------'
-    print '1. Get a user token access'
-    print '2. Get users information (profile | followers | following | relations | tweets | h_index)'
-    print '3. Make a query on Twitter'
-    print '4. Get tweets on real time'
-    print '5. Generate the declared relations graph (followers or following or both)'
-    print '6. Generate the dynamic relations graph (RT | reply | mentions)'
-    print '7. Processing tweets (entities| classify| users | spread)'
-    print '8. Exit'
-    print ' '
+  while exit != 'y':
+    try:
+      print '------------------------------'
+      print ' Working with:'
+      print '   app:',app_keys
+      print '   user:',user
+      print '   experiment:' ,experiment
+      print '------------------------------'
+      print 'What function do you want to run?'
+      print '------------------------------'
+      print '1. Get a user token access'
+      print '2. Get users information (profile | followers | following | relations | tweets | h_index)'
+      print '3. Make a query on Twitter'
+      print '4. Get tweets on real time'
+      print '5. Generate the declared relations graph (followers or following or both)'
+      print '6. Generate the dynamic relations graph (RT | reply | mentions)'
+      print '7. Processing tweets (entities| classify| users | spread)'
+      print '8. Exit'
+      print ' '
 
-    option = int(raw_input('--> Enter option: '))
+      option = int(raw_input('--> Enter option: '))
 
-    if option == 1:
-      os.chdir(path_keys)
-      command="python %stweet_auth.py '%s' '%s'" % (path_scripts,app_keys,user)
-      os.system(command)
-    elif option ==2:
-      os.chdir(path_experiment)
-      inputfile=get_inputfile ('Enter input file name with the list of users or list of profiles (each user in a line): ',path_experiment)
-      option_rest = get_suboption ('Enter an option (profile | followers | following |relations | tweets| h_index) : ' ,list_suboptions_2)
-      command="python %stweet_rest.py '%s' '%s' '%s' '--%s'" % (path_scripts,file_app_keys,file_user_keys, inputfile, option_rest) 
-      os.system(command)
-    elif option ==3:
-      os.chdir(path_experiment)
-      query= raw_input ('Enter a query (allows AND / OR connectors): ')
-      outputfile= get_outputfile ( 'Enter output file name: ',path_experiment)
-      if outputfile != None:
-        command="python %stweet_search.py '%s' '%s' '--query' '%s' '--file_out' '%s'" % (path_scripts,file_app_keys,file_user_keys, query,outputfile) 
+      if option == 1:
+        os.chdir(path_keys)
+        command="python %stweet_auth.py '%s' '%s'" % (path_scripts,app_keys,user)
         os.system(command)
-      else:
-         print 'Option not executed'
-    elif option ==4:
-      os.chdir(path_experiment)
-      file=get_inputfile ('Enter input file name with the keywords separated by , : ', path_experiment)
-      outputfile= get_outputfile ('Enter output file name: ', path_experiment)
-      if outputfile != None:
-        command="python %stweet_streaming.py '%s' '%s' '%s' '%s'  '--words' '%s'" % (path_scripts,file_app_keys,file_user_keys,path_experiment, outputfile,file) 
+      elif option ==2:
+        os.chdir(path_experiment)
+        inputfile=get_inputfile ('Enter input file name with the list of users or list of profiles (each user in a line): ',path_experiment)
+        option_rest = get_suboption ('Enter an option (profile | followers | following |relations | tweets| h_index) : ' ,list_suboptions_2)
+        command="python %stweet_rest.py '%s' '%s' '%s' '--%s'" % (path_scripts,file_app_keys,file_user_keys, inputfile, option_rest) 
         os.system(command)
-      else:
-         print 'Option not executed'
-    elif option == 5:
-      os.chdir(path_experiment)
-      inputfile=get_inputfile ('Enter input file name with the users profiles (It is necessary to get before the users profiles): ',path_experiment)
-      fast = raw_input ('opción --fast? (y/n:) ')
-      if fast == 'y': 
-        fast='--fast'
-      else:
-        fast=''
-      command="python %stweet_rest.py '%s' '%s' '%s'  '--connections' '%s'" % (path_scripts,file_app_keys,file_user_keys, inputfile,fast)
-      os.system(command)
-    elif option == 6:
-      os.chdir(path_experiment)
-      inputfile =get_inputfile ('Enter input file name with the tweets (got from a query or in real time): ', path_experiment)
-      relation= get_suboption ('Enter the relationship type (RT | reply | mention): ',list_suboptions_6)
-      top= raw_input ('Introduce top size (100-50000): ')
-      command="python %stweets_grafo.py '%s' '--%s' '--top_size' '%s'" % (path_scripts, inputfile, relation,top)
-      os.system(command)
-    elif option ==7:
-      os.chdir(path_experiment)
-      file= get_inputfile ('Enter input file name with the tweets (got from a query or in real time): ',path_experiment)
-      option_processing= get_suboption ('Enter option (entities| classify| users | spread): ',list_suboptions_7)
-      if option_processing == 'entities':
-        print 'in construccion'
-      elif option_processing == 'classify':
-        print 'in construccion'
-      elif option_processing == ' users':
-        print 'in construccion'
-      elif option_processing == ' spread':
-        print 'in construccion'
-      return False
-    elif option == 8:
-       return True
+      elif option ==3:
+        os.chdir(path_experiment)
+        query= raw_input ('Enter a query (allows AND / OR connectors): ')
+        outputfile= get_outputfile ( 'Enter output file name: ',path_experiment)
+        if outputfile != None:
+          command="python %stweet_search.py '%s' '%s' '--query' '%s' '--file_out' '%s'" % (path_scripts,file_app_keys,file_user_keys, query,outputfile) 
+          os.system(command)
+        else:
+          print 'Option not executed'
+      elif option ==4:
+        os.chdir(path_experiment)
+        file=get_inputfile ('Enter input file name with the keywords separated by , : ', path_experiment)
+        outputfile= get_outputfile ('Enter output file name: ', path_experiment)
+        if outputfile != None:
+          command="python %stweet_streaming.py '%s' '%s' '%s' '%s'  '--words' '%s'" % (path_scripts,file_app_keys,file_user_keys,path_experiment, outputfile,file) 
+          os.system(command)
+        else:
+          print 'Option not executed'
+      elif option == 5:
+        os.chdir(path_experiment)
+        inputfile=get_inputfile ('Enter input file name with the users profiles (It is necessary to get before the users profiles): ',path_experiment)
+        command="python %stweet_rest.py '%s' '%s' '%s'  '--connections' " % (path_scripts,file_app_keys,file_user_keys, inputfile)
+        fast = raw_input ('opción --fast? (y/n:) ')
+        if fast == 'y': 
+          command=command + '--fast'
+        os.system(command)
+      elif option == 6:
+        os.chdir(path_experiment)
+        inputfile =get_inputfile ('Enter input file name with the tweets (got from a query or in real time): ', path_experiment)
+        relation= get_suboption ('Enter the relationship type (RT | reply | mention): ',list_suboptions_6)
+        top= raw_input ('Introduce top size (100-50000): ')
+        command="python %stweets_grafo.py '%s' '--%s' '--top_size' '%s'" % (path_scripts, inputfile, relation,top)
+        os.system(command)
+      elif option ==7:
+        os.chdir(path_experiment)
+        inputfile = get_inputfile ('Enter input file name with the tweets (got from a query or in real time): ',path_experiment)
+        option_processing= get_suboption ('Enter option (entities| classify| users | spread): ',list_suboptions_7)
+        if option_processing == 'entities':
+          command="python %stweets_entity.py '%s' '%s' '%s' '--top_size' '10'" % (path_scripts, inputfile, path_experiment,path_resources)
+          os.system(command)
+        elif option_processing == 'classify':
+          print 'in construccion'
+        elif option_processing == ' users':
+          print 'in construccion'
+        elif option_processing == ' spread':
+          print 'in construccion'
+      elif option == 8:
+         exit='y'
+    except KeyboardInterrupt:
+      pass
+    finally:
+      pass
 
 if __name__ == '__main__':
 
 
-  exit=False
-  enviroment = False
-  while not exit:
-    try:
-        exit=main()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        pass
+       main()
+
