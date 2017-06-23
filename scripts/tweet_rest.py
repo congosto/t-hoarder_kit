@@ -70,17 +70,18 @@ class oauth_keys(object):
       rate_limit=resource[method]
       limit=int(rate_limit['limit'])
       remaining_hits=int(rate_limit['remaining'])
-      if remaining_hits < 1:
-        print 'waiting for 15 minutes ->' + str(datetime.now())
-        time.sleep(wait)
-      result = api.rate_limit_status(resources=type_resource)
-      resources=result['resources']
-      resource=resources[type_resource]
-      rate_limit=resource[method]
-      limit=int(rate_limit['limit'])
-      remaining_hits=int(rate_limit['remaining'])
       self.dict_ratelimit[(type_resource,method)]= remaining_hits
-      print 'remaing hits',remaining_hits
+      while remaining_hits <1:
+        print 'waiting for 5 minutes ->' + str(datetime.now())
+        time.sleep(wait/3)
+        result = api.rate_limit_status(resources=type_resource)
+        resources=result['resources']
+        resource=resources[type_resource]
+        rate_limit=resource[method]
+        limit=int(rate_limit['limit'])
+        remaining_hits=int(rate_limit['remaining'])
+        self.dict_ratelimit[(type_resource,method)]= remaining_hits
+        print 'remaing hits',remaining_hits
     except:
       print 'excepction cheking ratelimit, waiting for 15 minutes ->' + str(datetime.now())
       print 'If the same error occurred after 15 minutes, please abort the command and check the app-user access keys'
@@ -180,8 +181,8 @@ def how_long_it_takes (dict_user_attrib,flag_fast):
     print 'there are %s users with more than 5.000 following\n' % len(dict_top)
     print 'with --fast option only a maximum of 5000 folowing per user will be used\n'
     print 'with --fast option, time estimated %.2f hours\n' % (num_users/60.0)
-  option = raw_input("Continue? (s/n)")
-  if option !='s':
+  option = raw_input("Continue? (y/n)")
+  if option !='y':
     exit(1)
   return
 
@@ -189,11 +190,17 @@ def get_followers_id (user_keys,api,user,f_log):
   dict_followers={}
   try:
     print 'get %s ids followers' % user
-    oauth_keys.check_rate_limits (user_keys,api,'followers','/followers/ids',900)
-    for page in tweepy.Cursor(api.followers_ids,screen_name=user).pages():
-      oauth_keys.check_rate_limits (user_keys,api,'followers','/followers/ids',900)
-      for follower_id in page:
-        dict_followers[follower_id]=1
+    for page in tweepy.Cursor(api.followers_ids,screen_name=user,
+                              count=5000,
+                              monitor_rate_limit=True, 
+                              wait_on_rate_limit=True,
+                              wait_on_rate_limit_notify = True,
+                              retry_count = 5, 
+                              retry_delay = 5 ).pages():
+      for following_id in page:
+        dict_following[following_id]=1
+      if flag_fast:
+        return dict_followers
   except:
     f_log.write(('%s, %s error en tweepy, method followers/id, user %s\n')  % (time.asctime(),TypeError(),user))
   return dict_followers
@@ -201,14 +208,17 @@ def get_followers_id (user_keys,api,user,f_log):
 def get_following_id (user_keys,api,user,f_log,flag_fast):
   dict_following={}
   try:
-    print 'get %s ids followings' % user
-    oauth_keys.check_rate_limits (user_keys,api,'friends','/friends/ids',900)
-    for page in tweepy.Cursor(api.friends_ids,screen_name=user).pages():
-      oauth_keys.check_rate_limits (user_keys,api,'friends','/friends/ids',900)
+    print 'get %s ids followers' % user
+    for page in tweepy.Cursor(api.friends_ids,screen_name=user,
+                              monitor_rate_limit=True, 
+                              wait_on_rate_limit=True,
+                              wait_on_rate_limit_notify = True,
+                              retry_count = 5, 
+                              retry_delay = 5 ).pages():
       for following_id in page:
         dict_following[following_id]=1
       if flag_fast:
-        break
+        return dict_following
   except:
     f_log.write(('%s, %s error en tweepy, method friends/id, user %s\n')  % (time.asctime(),TypeError(),user))
   return dict_following
@@ -242,17 +252,21 @@ def get_relation (user_keys,api,user,f_log):
 def get_followers(user_keys,api,user,dict_friends,f_log,f_out,friends):
   print 'Getting user followers',user
   oauth_keys.check_rate_limits (user_keys,api,'users','/users/show/:id',900)
-  try:
+  if True:
+  #try:
     profile=api.get_user( screen_name=user)
     num_followers=profile.followers_count
     put_profile (api,user,profile,'root',f_log, f_out)
     followers_getting=0
-    #try:
-    if True:
+    try:
       print 'user: %s --> getting %s followers profiles' % (user,num_followers)
-      oauth_keys.check_rate_limits (user_keys,api,'followers','/followers/list',900)
-      for page in tweepy.Cursor(api.followers,screen_name=user,count=200).pages():
-        oauth_keys.check_rate_limits (user_keys,api,'followers','/followers/list',900)
+      for page in tweepy.Cursor(api.followers,screen_name=user,
+                                count=200,
+                                monitor_rate_limit=True, 
+                                wait_on_rate_limit=True,
+                                wait_on_rate_limit_notify = True,
+                                retry_count = 5, 
+                                retry_delay = 5 ).pages():
         followers_getting += len(page)
         print 'user: %s --> collected %s followers profiles of %s' % (user,followers_getting,num_followers)
         for profile in page:
@@ -263,16 +277,15 @@ def get_followers(user_keys,api,user,dict_friends,f_log,f_out,friends):
             pass
           else:
             put_profile (api,user,profile,relation,f_log, f_out)
-    else:
-    #except:
+    except:
       f_log.write(('%s, %s error en tweepy, method followers/list, user %s\n')  % (time.asctime(),TypeError(),user))
-  except:
+  else:
+  #except:
      f_log.write(('%s, %s error en tweepy, /users/show/:id, user %s\n')  % (time.asctime(),TypeError(),user))
   return
 
 def get_following (user_keys,api,user,dict_friends,f_log,f_out,flag_friends):
   print 'Getting user following',user
-  oauth_keys.check_rate_limits (user_keys,api,'users','/users/show/:id',900)
   try:
     profile=api.get_user( screen_name=user)
     num_following=profile.friends_count
@@ -281,9 +294,13 @@ def get_following (user_keys,api,user,dict_friends,f_log,f_out,flag_friends):
     following_getting=0
     try:
       print 'user: %s --> getting %s following profiles' % (user,num_following)
-      oauth_keys.check_rate_limits (user_keys,api,'friends','/friends/list',900)
-      for page in tweepy.Cursor(api.friends,screen_name=user,count=200).pages():
-        oauth_keys.check_rate_limits (user_keys,api,'friends','/friends/list',900)
+      for page in tweepy.Cursor(api.friends,screen_name=user,
+                                count=200,
+                                monitor_rate_limit=True, 
+                                wait_on_rate_limit=True,
+                                wait_on_rate_limit_notify = True,
+                                retry_count = 5, 
+                                retry_delay = 5 ).pages():
         following_getting += len(page)
         print 'user: %s --> collected %s following profiles of %s' % (user,following_getting,num_following)
         for profile in page:
