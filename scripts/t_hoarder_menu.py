@@ -89,7 +89,7 @@ def main():
     path_store='%s/store/' % root
   list_suboptions_2= ['profile','followers','following','relations','tweets','h_index']
   list_suboptions_6= ['RT','reply','mentions']
-  list_suboptions_7= ['entities','classify','users','spread']
+  list_suboptions_7= ['sort','entities','classify','users','spread']
   enviroment=False
   option=8
   exit='n'
@@ -105,7 +105,7 @@ def main():
     print  'working in', root
     print  ' '
     print '----------------------------------------'
-    print '------>       Environment  data  <------'
+    print '------>    Environment  data     <------'
     print '----------------------------------------'
 
     app_keys = get_inputfile ('Enter the file name with the application keys: ', path_keys)
@@ -123,26 +123,29 @@ def main():
 
   while exit != 'y':
     try:
-      print '------------------------------'
+      print '--------------------------------'
       print ' Working with:'
       print '   app:',app_keys
       print '   user:',user
       print '   experiment:' ,experiment
-      print '------------------------------'
+      print '--------------------------------'
       print 'What function do you want to run?'
-      print '------------------------------'
+      print '--------------------------------'
       print '1. Get a user token access'
       print '2. Get users information (profile | followers | following | relations | tweets | h_index)'
       print '3. Make a query on Twitter'
       print '4. Get tweets on real time'
       print '5. Generate the declared relations graph (followers or following or both)'
       print '6. Generate the dynamic relations graph (RT | reply | mentions)'
-      print '7. Processing tweets (entities| classify| users | spread)'
+      print '7. Processing tweets (sort |entities| classify| users | spread)'
       print '8. Exit'
       print ' '
-
-      option = int(raw_input('--> Enter option: '))
-
+      while True:
+        try:
+          option = int(raw_input('--> Enter option: '))
+          break
+        except:
+          pass
       if option == 1:
         os.chdir(path_keys)
         command="python %stweet_auth.py '%s' '%s'" % (path_scripts,app_keys,user)
@@ -188,17 +191,35 @@ def main():
         os.system(command)
       elif option ==7:
         os.chdir(path_experiment)
-        inputfile = get_inputfile ('Enter input file name with the tweets (got from a query or in real time): ',path_experiment)
-        option_processing= get_suboption ('Enter option (entities| classify| users | spread): ',list_suboptions_7)
-        if option_processing == 'entities':
-          command="python %stweets_entity.py '%s' '%s' '%s' '--top_size' '10'" % (path_scripts, inputfile, path_experiment,path_resources)
+        option_processing= get_suboption ('Enter option (sort |entities| classify| users | spread): ',list_suboptions_7)
+        if option_processing == 'sort':
+          inputfile = get_inputfile ('Enter input file name with the tweets (got from a query or in real time): ',path_experiment)
+          if args.linux:
+            filename, file_extension = os.path.splitext(inputfile)
+            command='(head -n 1 %s && tail -n +2 %s | sort -u) > %s_ok%s' % (inputfile,inputfile,filename,file_extension)
+            os.system(command)
+            print 'file sorted in  %s_ok%s)' % (filename,file_extension)
+          if args.windows:
+            print 'in construccion'
+        elif option_processing == 'entities':
+          inputfile = get_inputfile ('Enter input file name with the tweets (got from a query or in real time): ',path_experiment)
+          time_setting = raw_input('Offset GMT time (in Spain 1 in winter, 2 in summer): ')
+          command="python %stweets_entity.py '%s' '%s' '%s' '--top_size' '10' '--TZ' '%s'" % (path_scripts, inputfile, path_experiment,path_resources,time_setting)
           os.system(command)
         elif option_processing == 'classify':
-          print 'in construccion'
-        elif option_processing == ' users':
-          print 'in construccion'
-        elif option_processing == ' spread':
-          print 'in construccion'
+          inputfile = get_inputfile ('Enter input file name with the tweets (got from a query or in real time): ',path_experiment)
+          topicsfile = get_inputfile ('Enter file name  with topics dictionary: ',path_experiment)
+          command="python %stweets_classify.py '%s' '%s' '%s' " % (path_scripts, inputfile, topicsfile, path_experiment)
+          os.system(command)
+        elif option_processing == 'users':
+          inputfile = get_inputfile ('Enter input file name with the tweets (got from a query or in real time): ',path_experiment)
+          command="python %susers_types.py '%s' '%s' " % (path_scripts, inputfile, path_experiment)
+          os.system(command)
+        elif option_processing == 'spread':
+          inputfile = get_inputfile ('Enter input file name with the tweets (got from a query or in real time): ',path_experiment)
+          time_setting = raw_input ('Offset GMT time (in Spain 1 in winter, 2 in summer): ')
+          command="python %stweets_spread.py '%s' '%s' '--top_size' '1000' '--TZ' '%s' " % (path_scripts, inputfile, path_experiment, time_setting)
+          os.system(command)
       elif option == 8:
          exit='y'
     except KeyboardInterrupt:
@@ -207,7 +228,9 @@ def main():
       pass
 
 if __name__ == '__main__':
-
-
-       main()
+   try:
+     main()
+   except KeyboardInterrupt:
+     print '\nGoodbye!'
+     exit(0)
 
