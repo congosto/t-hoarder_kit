@@ -27,12 +27,9 @@ import math
 import codecs
 import argparse
 
-
-
 #  
 def strip_accents(s):
    return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
-
 
 # # A dinamic matrix
 # # This matrix is a dict whit only cells it nedeed
@@ -98,17 +95,17 @@ class AvgDict(dict):
 class Matrix(dict):
   def __init__(self):
     return
- 
+
   def setitem(self, row, col, v):
       dict.__setitem__(self,(row,col),v)
       return
-    
+
   def getitem(self, row,col):
     if (row,col) not in self:
       return 0
     else:
       return self[(row,col)]  
-      
+
   def store(self, row, col, v):
     if (row,col) not in self:
       dict.__setitem__(self,(row,col),v)
@@ -116,12 +113,12 @@ class Matrix(dict):
        old_value=self[(row,col)] 
        dict.__setitem__(self,(row,col),v+old_value)
     return
-    
+
   def store_unique(self, row, col, v):
     if (row,col) not in self:
       dict.__setitem__(self,(row,col),v)
     return
-  
+
 class Counters(object):
   def __init__(self,  prefix,path_experiment,dict_stopwords,top_size):
      self.prefix=prefix
@@ -162,8 +159,8 @@ class Counters(object):
      self.dict_top_locs_day=Matrix()
      self.dict_top_words_day=Matrix()
      self.dict_top_hashtags_day=Matrix()
-     return  
-     
+     return
+
   def reset(self):
      self.count_tweets =0
      self.dict_tweets.clear()
@@ -172,7 +169,7 @@ class Counters(object):
      self.dict_words.clear()
      self.dict_hashtags.clear()
      return  
-     
+
   def reset_day(self):
      self.count_tweets =0
      self.dict_tweets_day.clear()
@@ -188,7 +185,7 @@ class Counters(object):
      self.dict_top_words_day.clear()
      self.dict_top_hasgtags_day.clear()
      return  
-        
+
   def token_words (self,source):
     list_words=[]
     source_without_urls=u''
@@ -220,9 +217,9 @@ class Counters(object):
     for item in top:
       f_file.write('%s\n' %(item))
     f_file.close()
-    
+
   ####### methods ################
-  
+
   def set_tweets_day(self,date,text):
     self.count_tweets += 1
     self.dict_tweets_day.store(date,1)
@@ -230,11 +227,11 @@ class Counters(object):
     if len (list_mentions) >0:
       if re.match(r'[\.]*(@\w+)[^\t\n]+',text):
         self.dict_reply_day.store(date,1)
-      elif (text.find('rt @') != -1):
+      elif re.match('[rt[\s]*(@\w+)[:]*',text,re.U):
         self.dict_RT_day.store(date,1)
       self.dict_mention_day.store(date,1)
     return
- 
+
   def get_tweets_day(self):     
      self.tweets_day_order=sorted([(key,value) for (key,value) in self.dict_tweets_day.items()])
      f_out=  codecs.open(self.path_experiment+self.prefix+'_tweets_day.txt', 'w',encoding='utf-8') 
@@ -243,12 +240,12 @@ class Counters(object):
         f_out.write ('%s\t%s\t%s\t%s\t%s\n' % (key,self.dict_tweets_day.getitem(key),self.dict_RT_day.getitem(key),self.dict_reply_day.getitem(key),self.dict_mention_day.getitem(key)))
      f_out.close()
      return
-     
+
   def set_author(self, author):
     self.count_tweets += 1
     self.dict_tweets.store(author,1)
     return
- 
+
   def get_authors(self):
     num_authors=len(self.dict_tweets)
     top_size=self.top_size
@@ -267,7 +264,7 @@ class Counters(object):
     self.write_top (self.top_authors,'top_authors')
     f_out.close()
     return
-    
+
   def set_authors_day(self,date,author):
       if (date,author) not in self.dict_authors_day:
         self.dict_authors_unique_day.store(date,1)
@@ -281,7 +278,7 @@ class Counters(object):
       self.dict_tweets.store(author,1)
       self.dict_authors_day.store(date,author,1)
       return
-      
+
   def get_authors_day(self):     
      #write general twittering frecuency 
      f_out=  codecs.open(self.path_experiment+self.prefix+'_authors_day.txt', 'w',encoding='utf-8') 
@@ -310,12 +307,12 @@ class Counters(object):
       user=list_mentions[0]
       if re.match(r'[\.]*(@\w+)[^\t\n]+',text):
         self.dict_users_reply.store(user,1)
-      elif (text.find('rt @') != -1):
+      elif re.match('[rt[\s]*(@\w+)[:]*',text,re.U):
         self.dict_users_RT.store(user,1)
       for user in list_mentions:
         self.dict_users_mention.store(user,1)
     return
-    
+
   def get_users_reply(self):
     num_users_reply=len(self.dict_users_reply)
     top_size=self.top_size
@@ -332,7 +329,7 @@ class Counters(object):
       self.top_users_reply.append(user)
     f_out.close()
     return
-    
+
   def get_users_RT(self):
     num_users_RT=len(self.dict_users_RT)
     top_size=self.top_size
@@ -349,7 +346,7 @@ class Counters(object):
       self.top_users_RT.append(user)
     f_out.close()
     return
-    
+
   def get_users_mention(self):
     num_users_mention=len(self.dict_users_mention)
     top_size=self.top_size
@@ -367,8 +364,7 @@ class Counters(object):
     self.write_top (self.top_users_mention,'top_mentions')
     f_out.close()
     return
-    
-    
+
   def set_user_mention_day(self,date,text):
     list_mentions=re.findall (r'@\w+', text)
     if len (list_mentions) >0:
@@ -377,7 +373,7 @@ class Counters(object):
         if user in self.top_users_reply:
           index= self.top_users_reply.index(user)
           self.dict_top_users_reply_day.store(date,index,1)
-      elif (text.find('rt @') != -1):
+      elif re.match('[rt[\s]*(@\w+)[:]*',text,re.U):
         if user in self.top_users_RT:
           index= self.top_users_RT.index(user)
           self.dict_top_users_RT_day.store(date,index,1)
@@ -386,7 +382,7 @@ class Counters(object):
           index= self.top_users_mention.index(user)
           self.dict_top_users_mention_day.store(date,index,1)
     return
-    
+
   def get_users_reply_day(self):     
      #write general twittering frecuency 
      f_out=  codecs.open(self.path_experiment+self.prefix+'_top_reply_day.txt', 'w',encoding='utf-8') 
@@ -402,7 +398,7 @@ class Counters(object):
      f_out.write ( "\n")
      f_out.close()
      return  
-     
+
   def get_users_RT_day(self):     
      #write general twittering frecuency 
      f_out=  codecs.open(self.path_experiment+self.prefix+'_top_RT_day.txt', 'w',encoding='utf-8') 
@@ -418,7 +414,7 @@ class Counters(object):
      f_out.write ( "\n")
      f_out.close()
      return 
-     
+
   def get_users_mention_day(self):     
      #write general twittering frecuency 
      f_out=  codecs.open(self.path_experiment+self.prefix+'_top_mention_day.txt', 'w',encoding='utf-8') 
@@ -438,7 +434,7 @@ class Counters(object):
   def set_app(self, app):
     self.dict_apps.store(app,1)
     return
-    
+
   def get_apps(self):
     num_apps=len(self.dict_apps)
     top_size=self.top_size
@@ -457,13 +453,13 @@ class Counters(object):
     self.write_top (self.top_apps,'top_apps')  
     f_out.close()
     return
-    
+
   def set_apps_day(self,date,app):
     if app in self.top_apps:
        index= self.top_apps.index(app)
        self.dict_top_apps_day.store(date,index,1)
     return
-      
+
   def get_apps_day(self):     
      f_out=  codecs.open(self.path_experiment+self.prefix+'_top_apps_day.txt', 'w',encoding='utf-8') 
      f_out.write ("Date")
@@ -478,14 +474,14 @@ class Counters(object):
      f_out.write ( "\n")
      f_out.close()
      return
-      
+
   def set_loc(self, loc):
       if (loc=='none') or (len(loc)==0):
         self.dict_locs.store('desconocida',1)
       else:
         self.dict_locs.store(loc,1)
       return
-    
+
   def get_locs(self):
     num_locs=len(self.dict_locs)
     top_size=self.top_size
@@ -503,13 +499,13 @@ class Counters(object):
       self.top_locs.append(loc)
     f_out.close()
     return  
-    
+
   def set_locs_day(self,date,loc):
       if loc in self.top_locs:
         index= self.top_locs.index(loc)
         self.dict_top_locs_day.store(date,index,1)
       return  
-      
+
   def get_locs_day(self):     
      locs_day_matrix_order=sorted([(key,value) for (key,value) in self.dict_locs_day.items()])
      f_out=  codecs.open(self.path_experiment+self.prefix+'_locs_day.txt', 'w',encoding='utf-8') 
@@ -519,14 +515,14 @@ class Counters(object):
         f_out.write ('%s\t%s\t%s\t%s\t%s\n' % (loc,self.dict_locs_day[key]))
      f_out.close()
      return
-      
+
   def set_words(self, text):
     words=self.token_words(text)
     for word in words:
       if word not in self.dict_stopwords:
          self.dict_words.store(word,1)
     return
-    
+
   def get_words(self):
     num_words=len(self.dict_words)
     top_size=self.top_size
@@ -552,7 +548,7 @@ class Counters(object):
           index= self.top_words.index(word)
           self.dict_top_words_day.store(date,index,1)
     return  
-        
+
   def get_words_day(self):     
      f_out=  codecs.open(self.path_experiment+self.prefix+'_top_words_day.txt', 'w',encoding='utf-8') 
      f_out.write ("Date")
@@ -567,13 +563,13 @@ class Counters(object):
      f_out.write ( "\n")
      f_out.close()
      return
-      
+
   def set_hashtags(self, text):
     words=self.token_hashtags(text)
     for word in words:
        self.dict_hashtags.store(word,1)
     return
-    
+
   def get_hashtags(self):
     num_hashtags=len(self.dict_hashtags)
     top_size=self.top_size
@@ -591,7 +587,7 @@ class Counters(object):
       self.top_hashtags.append(hashtag)
     self.write_top (self.top_hashtags,'top_hashtags')    
     return  
-   
+
   def set_hashtags_day(self,date,text):
     words=self.token_hashtags(text)
     for word in words:
@@ -599,7 +595,7 @@ class Counters(object):
           index= self.top_hashtags.index(word)
           self.dict_top_hashtags_day.store(date,index,1)
     return  
-    
+
   def get_hashtags_day(self):
      f_out=  codecs.open(self.path_experiment+self.prefix+'_top_hashtags_day.txt', 'w',encoding='utf-8') 
      f_out.write ("Date")
@@ -617,7 +613,6 @@ class Counters(object):
 
 def get_filter (file):
     dict_filter ={}
-    print file
     if os.path.isfile(file):
       f = codecs.open(file, 'rU',encoding='utf-8')
       list_words= re.findall(r'\w+',f.read(),re.U)
@@ -626,7 +621,6 @@ def get_filter (file):
     return dict_filter
 
 def get_tweet (tweet):
- 
    data = tweet.split('\t')
    if len (data) >= 10:
      id_tweet = data[0]
@@ -668,14 +662,11 @@ def main():
   head=True
   first_tweet=True
   num_tweets=0
-  print file_in
-  filename=re.search (r"([\w-]+)\.([\w]*)", file_in)
-  print 'file name', file_in
-  if not filename:
+  print 'Getting entities from ',file_in
+  prefix,ext=os.path.splitext(file_in)
+  if ext =='':
     print "bad filename",file_in, ' Must have an extension'
     exit (1)
-  name=filename.group(0)
-  prefix=filename.group(1)
   try:  
     f_in = codecs.open(file_in, 'rU',encoding='utf-8')
   except:
@@ -750,17 +741,18 @@ def main():
         day=local_time.day
         hour=local_time.hour
         local_day= datetime.date(year=int(year), month=int(month), day=int(day))
+        current_time= local_time
+        current_day= local_day
         num_tweets=num_tweets +1 
         if num_tweets % 10000 == 0:
           print num_tweets  
         if first_tweet == True:
           start_time= local_time
           start_day= local_day
-          last_day= start_day
+          last_day= current_day
           last_hour= hour
           first_tweet=False
-        current_time= local_time
-        current_day= local_day
+          print 'current day',current_day
         if current_day != last_day:
           print 'current day',current_day
           last_day=current_day
@@ -793,5 +785,3 @@ if __name__ == '__main__':
   except KeyboardInterrupt:
     print '\nGoodbye!'
     exit(0)
-
- 
