@@ -139,16 +139,14 @@ class Counters(object):
     return True
 
   def set_topics(self,text):
-    list_tokens_tweet=[]
     list_topics_tweet=[]
     text=strip_accents(text)
     for token in self.dict_topics:
       if self.pass_filter(text):
         match = re.search(r''+ token,text,re.U)
         if match != None:
-          if token not in list_tokens_tweet:
-            list_tokens_tweet.append (token)
-            topic= self.dict_topics[token]
+          topic= self.dict_topics[token]
+          if topic not in list_topics_tweet:
             list_topics_tweet.append (topic)
             self.dict_count_topics.store(topic,1)
     return list_topics_tweet
