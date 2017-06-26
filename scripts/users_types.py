@@ -25,7 +25,6 @@ from datetime import timedelta
 import unicodedata
 import math
 import codecs
-import numpy
 import argparse
 
 def strip_accents(s):
