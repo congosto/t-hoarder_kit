@@ -54,9 +54,44 @@ class oauth_keys(object):
       print 'Error in oauth autentication, user key ', user_keys_file
       exit(83)
     return api 
-    
-def tweet_search (user_keys,api,file_out,query):
 
+  def get_rate_limits (self,api,type_resource,method,wait):
+    try:
+      result = api.rate_limit_status(resources=type_resource)
+      resources=result['resources']
+      resource=resources[type_resource]
+      rate_limit=resource[method]
+      limit=int(rate_limit['limit'])
+      remaining_hits=int(rate_limit['remaining'])
+      self.dict_ratelimit[(type_resource,method)]= remaining_hits
+      while remaining_hits <1:
+        print 'waiting for 5 minutes ->' + str(datetime.now())
+        time.sleep(wait/3)
+        result = api.rate_limit_status(resources=type_resource)
+        resources=result['resources']
+        resource=resources[type_resource]
+        rate_limit=resource[method]
+        limit=int(rate_limit['limit'])
+        remaining_hits=int(rate_limit['remaining'])
+        self.dict_ratelimit[(type_resource,method)]= remaining_hits
+        print 'remaing hits',remaining_hits
+    except:
+      print 'excepction cheking ratelimit, waiting for 15 minutes ->' + str(datetime.now())
+      print 'If the same error occurred after 15 minutes, please abort the command and check the app-user access keys'
+      time.sleep(wait)
+    return
+ 
+  def check_rate_limits (self,api,type_resource,method,wait):
+    if (type_resource,method) not in self.dict_ratelimit:
+      self.get_rate_limits (api,type_resource,method,wait)
+    else:
+      self.dict_ratelimit[(type_resource,method)]-= 1
+      print 'remaing hits',self.dict_ratelimit[(type_resource,method)]
+      if self.dict_ratelimit[(type_resource,method)] <1 :
+        self.get_rate_limits (api,type_resource,method,wait)
+    return 
+
+def tweet_search (user_keys,api,file_out,query):
   head=False
   try:
     f=codecs.open(file_out, 'ru',encoding='utf-8',errors='ignore') 
@@ -66,23 +101,30 @@ def tweet_search (user_keys,api,file_out,query):
   print 'results in %s\n' % file_out
   f_log= open(file_out+'.log','a')
   f_log.write(('%s\t') % ( datetime.now()))
- 
-  recent_tweet=1000
   n_tweets=0
+  recent_tweet=0
   first_tweet=True
-  hay_tweets=True
+  f_log.write(('%s\t') % ('First time\t'))
   if head:
     f.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tname\tdescription\turl_media\ttype media\tquoted\n')
-  try:
-    for page in tweepy.Cursor(api.search,
-                              q=query,
-                              count=100,
-                              include_entities=True,
-                              result_type='recent',
-                              monitor_rate_limit=True, 
-                              wait_on_rate_limit=True,
-                              wait_on_rate_limit_notify = True,
-                              retry_count = 5, retry_delay = 5 ).pages():
+  while True:
+    try:
+      oauth_keys.check_rate_limits (user_keys,api,'search','/search/tweets',900)
+      error=False
+      if first_tweet:
+        #print 'since_id', recent_tweet
+        page = api.search(query, since_id=recent_tweet,include_entities=True,result_type='recent',count=100)  # SearchResults containing list of statuses plus meta data
+        first_tweet=False
+      else:
+        #print 'max_id', recent_tweet-1
+        page = api.search(query, max_id=recent_tweet-1,include_entities=True,result_type='recent',count=100)  # SearchResults containing list of statuses plus meta data
+    except:
+      f_log.write('error en tweepy\t') 
+      error=True
+      pass
+    if len(page) == 0:
+      break
+    if not error:
       print 'collected',n_tweets
       for statuse in page:
         recent_tweet= statuse.id
@@ -113,7 +155,7 @@ def tweet_search (user_keys,api,file_out,query):
               list_geoloc = coordinates['coordinates']
               geoloc= '%s, %s' % (list_geoloc[0],list_geoloc[1])
         except:
-          pass
+         pass
         try:
           if hasattr (statuse,'entities'):
             entities=statuse.entities
@@ -127,13 +169,13 @@ def tweet_search (user_keys,api,file_out,query):
         try:
           location=re.sub('[\r\n\t]+', ' ',statuse.user.location,re.UNICODE)
         except:
-          pass
+         pass
         try:
-          description=re.sub('[\r\n\t]+', ' ',profile_user['description'],re.UNICODE)
+         description=re.sub('[\r\n\t]+', ' ',profile_user['description'],re.UNICODE)
         except:
           pass 
         try:    
-         name=re.sub('[\r\n\t]+', ' ',profile_user['name'],re.UNICODE)
+          name=re.sub('[\r\n\t]+', ' ',profile_user['name'],re.UNICODE)
         except:
           pass
         try:
@@ -142,14 +184,6 @@ def tweet_search (user_keys,api,file_out,query):
           n_tweets= n_tweets +1 
         except :
           f_log.write('Twitter Error\t')
-  except KeyboardInterrupt:
-    print '\nGoodbye!'
-    exit(0)
-  except:
-    f_log.write('error en tweepy\t') 
-# save tweets
-  print 'collected',n_tweets
-
 # write log file
   f_log.write(('wrote %s tweets\t') % ( n_tweets))
   f_log.write(('recent tweet Id %s \n') % (recent_tweet))
