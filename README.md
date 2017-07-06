@@ -3,13 +3,14 @@ Set of basic tools to extract data from the Twitter API and visualize graphs
 
 ## Installation:
 
-It is recommended to clone it with git so that the versions are automatically updated
+Recommended to clone with git, so versions are automatically updated
 
     git clone https://github.com/congosto/t-hoarder_kit
 
 Dependencies: [tweepy](https://github.com/tweepy/tweepy)
 
-    
+Python 2.7.12 or newer. Python 3.x not supported
+
 
 ## Enviroment
 
