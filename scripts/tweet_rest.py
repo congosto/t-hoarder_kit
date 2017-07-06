@@ -186,7 +186,7 @@ def how_long_it_takes (dict_user_attrib,flag_fast):
     exit(1)
   return
 
-def get_followers_id (user_keys,api,user,f_log):
+def get_followers_id (user_keys,api,user,f_log,flag_fast):
   dict_followers={}
   try:
     print 'get %s ids followers' % user
@@ -197,8 +197,8 @@ def get_followers_id (user_keys,api,user,f_log):
                               wait_on_rate_limit_notify = True,
                               retry_count = 5, 
                               retry_delay = 5 ).pages():
-      for following_id in page:
-        dict_following[following_id]=1
+      for follower_id in page:
+        dict_followers[follower_id]=1
       if flag_fast:
         return dict_followers
   except:
@@ -241,7 +241,7 @@ def put_profile (api,user,profile,relation,f_log, f_out):
 
 def get_relation (user_keys,api,user,f_log):
   dict_friends={}
-  dict_followers=get_followers_id (user_keys,api,user,f_log)
+  dict_followers=get_followers_id (user_keys,api,user,f_log,False)
   dict_following=get_following_id (user_keys,api,user,f_log,False)
   for following_id in dict_following:
     if following_id in dict_followers:
@@ -252,36 +252,57 @@ def get_relation (user_keys,api,user,f_log):
 def get_followers(user_keys,api,user,dict_friends,f_log,f_out,friends):
   print 'Getting user followers',user
   oauth_keys.check_rate_limits (user_keys,api,'users','/users/show/:id',900)
-  if True:
-  #try:
+  try:
     profile=api.get_user( screen_name=user)
     num_followers=profile.followers_count
     put_profile (api,user,profile,'root',f_log, f_out)
     followers_getting=0
-    try:
-      print 'user: %s --> getting %s followers profiles' % (user,num_followers)
-      for page in tweepy.Cursor(api.followers,screen_name=user,
+    dict_followers=get_followers_id (user_keys,api,user,f_log,False)
+  except:
+    f_log.write(('%s, %s error en tweepy, /users/show/:id, user %s\n')  % (time.asctime(),TypeError(),user))
+  try:
+    print 'user: %s --> getting %s followers profiles' % (user,num_followers)
+    for page in tweepy.Cursor(api.followers,screen_name=user,
                                 count=200,
                                 monitor_rate_limit=True, 
                                 wait_on_rate_limit=True,
                                 wait_on_rate_limit_notify = True,
                                 retry_count = 5, 
                                 retry_delay = 5 ).pages():
-        followers_getting += len(page)
-        print 'user: %s --> collected %s followers profiles of %s' % (user,followers_getting,num_followers)
-        for profile in page:
-          relation='follower'
-          if profile.id in dict_friends:
-            relation='friend'
-          if relation == 'friend' and not friends:
-            pass
-          else:
-            put_profile (api,user,profile,relation,f_log, f_out)
+      followers_getting += len(page)
+      print 'user: %s --> collected %s followers profiles of %s' % (user,followers_getting,num_followers)
+      for profile in page:
+        relation='follower'
+        if profile.id in dict_followers:
+          del dict_followers[profile.id] 
+        if profile.id in dict_friends:
+          relation='friend'
+        if relation == 'friend' and not friends:
+          pass
+        else:
+          put_profile (api,user,profile,relation,f_log, f_out)
+    print 'user: %s --> collected %s followers profiles of %s' % (user,followers_getting,num_followers)
+  except:
+    f_log.write(('%s, %s error en tweepy, method followers/list, user %s\n')  % (time.asctime(),TypeError(),user))
+  print 'Adding remaining  %s users' % (len(dict_followers))
+  for user_id in dict_followers:
+    try:
+      oauth_keys.check_rate_limits (user_keys,api,'users','/users/show/:id',900)
+      profile=api.get_user(user_keys, user_id=user_id)
+      followers_getting += 1
+      follower=profile.screen_name
+      print 'collected profile of %s \n' % follower
+      relation='follower'
+      if profile.id in dict_friends:
+        relation='friend'
+      if relation == 'friend' and not friends:
+        pass
+      else:
+        put_profile (api,follower,profile,relation,f_log, f_out)
     except:
-      f_log.write(('%s, %s error en tweepy, method followers/list, user %s\n')  % (time.asctime(),TypeError(),user))
-  else:
-  #except:
-     f_log.write(('%s, %s error en tweepy, /users/show/:id, user %s\n')  % (time.asctime(),TypeError(),user))
+      print 'raised excepction, user: %s --> collected %s followers profiles of %s' % (user,followers_getting,num_followers)
+      continue
+  print 'user: %s --> collected %s followers profiles of %s' % (user,followers_getting,num_followers)
   return
 
 def get_following (user_keys,api,user,dict_friends,f_log,f_out,flag_friends):
@@ -499,7 +520,6 @@ def main():
     f_out=  codecs.open(name_file_out, 'w',encoding='utf-8', errors='ignore')
     print "-->Results in %s\n" % name_file_out
     f_out.write ('id user\tscreen_name\tnet\trelation\tfollowers\tfollowing\tstatuses\tlists\tsine\tname\ttime zone\tlocation\tweb\tavatar\tbio\ttimestamp\n')
-    print "-->Results in %s\n" % (name_file_out)
     for line in f_users_group_file:
       user= line.rstrip('\r\n')
       dict_friends= {}
@@ -510,7 +530,6 @@ def main():
     f_out=  codecs.open(name_file_out, 'w',encoding='utf-8', errors='ignore')
     print "-->Results in %s\n" % name_file_out
     f_out.write ('id user\tscreen_name\tnet\trelation\tfollowers\tfollowing\tstatuses\tlists\tsine\tname\ttime zone\tlocation\tweb\tavatar\tbio\ttimestamp\n')
-    print "-->Results in %s\n" % (name_file_out)
     for line in f_users_group_file:
       user= line.rstrip('\r\n')
       dict_friends= {}
