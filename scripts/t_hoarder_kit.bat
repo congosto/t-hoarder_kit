@@ -30,7 +30,7 @@ del t-hoarder_kit_status.txt
 if %a%==0 (goto uptodate) else (goto askupgrading)
 :askupgrading
    set /P upgrading_changes="There are updates from t-hoarder_kit, do you want to install them (y/n)? "
-   if %upgrading_changes%=="y" (goto upgrading) else (goto menu_t-hoarder_kit)
+   if %upgrading_changes%==y (goto upgrading) else (goto menu_t-hoarder_kit)
    :upgrading
       echo "Upgrading changes"
       git pull
