@@ -1,6 +1,8 @@
 # t-hoarder_kit
 Set of basic tools to extract data from the Twitter API and visualize graphs
 
+## environents
+
 ## Installation:
 
 Recommended to clone with git, so versions are automatically updated
@@ -12,13 +14,15 @@ Dependencies: [tweepy](https://github.com/tweepy/tweepy)
 Python 2.7.12 or newer. Python 3.x not supported
 
 
-## Enviroment
+## Data enviroment
 
 T-hoarder kit works on the following directory structure
 
      T-hoarder_kit --+-- keys (app keys and users access token for oauth authentication in the API)
                      |
                      +- scripts ( scripts in Python)
+                     |
+                     +--resources (Some information needed to process data)
                      |
                      +- store -+-- experiment-1 ( A directory for each experiment so the data is not mixed)
                                |
@@ -29,7 +33,21 @@ T-hoarder kit works on the following directory structure
 
 Assume that the access keys are in the keys directory and the results are deposited in the store/experiment directory
 
-T-hoarder_kit.sh provides a menu for access to python scripts. 
+## Execution Environments
+
+### Windows:
+
+      1. It is required to include an environment variable called t-hoarder_kit_HOME with the directory where it is installed t-hoarder_kit
+      2. It is needed to add in the PATH environment variable the directory where the t-hoarder_kit scripts have been installed (the The content of the environment variable t-hoarder_kit_HOME\scripts)
+      3. Open a terminal (cmd)
+      4. Run the command t_hoarder_kit.bat
+
+### Linux
+
+      1. Open a terminal
+      2. Run the command t_hoarder_kit.sh
+
+t_hoarder_kit.bat (Windows) and t_hoarder_kit.sh (linux) provide this menu for access to python scripts. 
 
 
       1. Get a user token access
