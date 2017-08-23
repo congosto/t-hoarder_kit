@@ -39,7 +39,7 @@ Assume that the access keys are in the keys directory and the results are deposi
 ### Windows:
 
   - It is required to include an environment variable called t-hoarder_kit_HOME with the directory where it is installed t-hoarder_kit
-  - It is needed to add in the PATH environment variable the directory where the t-hoarder_kit scripts have been installed (the The content of the environment variable t-hoarder_kit_HOME\scripts)
+  - It is needed to add in the PATH environment variable the directory where the t-hoarder_kit scripts have been installed (the content of the environment variable t-hoarder_kit_HOME\scripts)
   - Open a terminal (cmd)
   - Run the command t_hoarder_kit.bat
 
