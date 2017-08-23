@@ -1,9 +1,8 @@
 # t-hoarder_kit
 Set of basic tools to extract data from the Twitter API and visualize graphs
 
-## environents
 
-## Installation:
+## Installation
 
 Recommended to clone with git, so versions are automatically updated
 
