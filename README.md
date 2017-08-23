@@ -13,6 +13,7 @@ Dependencies: [tweepy](https://github.com/tweepy/tweepy)
 
 Python 2.7.12 or newer. Python 3.x not supported
 
+An alternative is to use this [Dropbox Virtual Machine](https://www.dropbox.com/s/18gt69suptie5hw/ubuntumate1602_taller.ova?dl=0) that takes all software installed (The VM has a size almost 4 GB so it is recommended to install it from a high speed connection). 
 
 ## Data enviroment
 
@@ -37,15 +38,15 @@ Assume that the access keys are in the keys directory and the results are deposi
 
 ### Windows:
 
-      1. It is required to include an environment variable called t-hoarder_kit_HOME with the directory where it is installed t-hoarder_kit
-      2. It is needed to add in the PATH environment variable the directory where the t-hoarder_kit scripts have been installed (the The content of the environment variable t-hoarder_kit_HOME\scripts)
-      3. Open a terminal (cmd)
-      4. Run the command t_hoarder_kit.bat
+  - It is required to include an environment variable called t-hoarder_kit_HOME with the directory where it is installed t-hoarder_kit
+  - It is needed to add in the PATH environment variable the directory where the t-hoarder_kit scripts have been installed (the The content of the environment variable t-hoarder_kit_HOME\scripts)
+  - Open a terminal (cmd)
+  - Run the command t_hoarder_kit.bat
 
 ### Linux
 
-      1. Open a terminal
-      2. Run the command t_hoarder_kit.sh
+  - Open a terminal
+  - Run the command t_hoarder_kit.sh
 
 t_hoarder_kit.bat (Windows) and t_hoarder_kit.sh (linux) provide this menu for access to python scripts. 
 
