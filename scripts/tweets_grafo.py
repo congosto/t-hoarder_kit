@@ -323,14 +323,19 @@ def main():
   print '------> Extracting relation %s\n' % type_relation
   relation= Relation(prefix,top_size,type_relation)
   num_line=0
+  line_old=''
   for line in f_in:
+    line=line_old+line
+    if line_old != '':
+      print 'Repaired tweet', line
     num_line +=1
     if num_line >1:
       if num_line % 10000 == 0:
         print num_line 
-      line=line.strip('\n')
+      line=line.strip('\r\n')
       data=line.split('\t')
-      if len(data) > 9 : 
+      if len(data) > 9 :
+        line_old=''
         author=data[2].lower()
         text=data[3].lower()
         followers=get_number(data[6])
@@ -342,7 +347,8 @@ def main():
         if len(list_relations) > 0:
           relation.set_relation (author,text, list_relations,type_relation)
       else:
-        print 'No mactch',line
+        line_old=line
+        print 'truncated tweet',line
  #extract and print top 
  
   relation.get_top_authors () 
@@ -353,19 +359,24 @@ def main():
   #sencond pass
   f_in.seek(0)
   num_line=0
+  line_old=''
   for line in f_in:
+    line=line_old+line
     num_line +=1
     if num_line >1:
       if num_line % 10000 == 0:
         print num_line 
-      line=line.strip('\n')
+      line=line.strip('\r\n')
       data=line.split('\t') 
-      if len(data) > 4 :
+      if len(data) > 9 :
+        line_old=''
         author=data[2].lower()
         text=data[3].lower()
         list_relations= relation.get_relation (text,type_relation)
         if len(list_relations) > 0:
           relation.set_relation_nodes (author,text, list_relations,type_relation)
+      else:
+        line_old=line
   print 'format gdf'
   relation.get_format_gdf ('top')
   relation.get_format_gdf ('all')
