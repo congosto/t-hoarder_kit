@@ -274,7 +274,7 @@ class Relation(object):
     return
                  
 def get_number (item):
-  numner=0
+  number=0
   match=(re.search (r"\d+",item))
   if match:
     number = int(match.group(0))
