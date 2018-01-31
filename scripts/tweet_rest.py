@@ -353,15 +353,15 @@ def get_tweets(user_keys,api,user,flag_id_user,f_log,flag_RT):
     try:
       if first_tweet:
         if flag_id_user:
-          page =api.user_timeline (user_id=user,since_id=recent_tweet,include_rts=flag_RT,count=200,include_entities=1)
+          page =api.user_timeline (user_id=user,since_id=recent_tweet,include_rts=flag_RT,count=200,include_entities=1,tweet_mode='extended')
         else:
-          page =api.user_timeline (screen_name=user,since_id=recent_tweet,include_rts=flag_RT,count=200,include_entities=1)
+          page =api.user_timeline (screen_name=user,since_id=recent_tweet,include_rts=flag_RT,count=200,include_entities=1,tweet_mode='extended')
         first_tweet=False
       else:
          if flag_id_user:
-           page =api.user_timeline (user_id=user,max_id=recent_tweet,include_rts=flag_RT,count=200,include_entities=1)
+           page =api.user_timeline (user_id=user,max_id=recent_tweet,include_rts=flag_RT,count=200,include_entities=1,tweet_mode='extended')
          else:
-           page =api.user_timeline (screen_name=user,max_id=recent_tweet,include_rts=flag_RT,count=200,include_entities=1)
+           page =api.user_timeline (screen_name=user,max_id=recent_tweet,include_rts=flag_RT,count=200,include_entities=1,tweet_mode='extended')
     except:
       f_log.write(('%s, %s error en tweepy, method tweets, user %s\n')  % (time.asctime(),TypeError(),user)) 
       break
@@ -380,6 +380,8 @@ def get_tweets(user_keys,api,user,flag_id_user,f_log,flag_RT):
       geoloc=None
       location=None
       statuse_quoted_text= None
+      first_ht=''
+      first_user_mentions=''
       try:
         if hasattr(statuse, 'quoted_status_id'):
           #print statuse.quoted_status_id
@@ -388,7 +390,7 @@ def get_tweets(user_keys,api,user,flag_id_user,f_log,flag_RT):
           statuse_quoted_text=re.sub('[\r\n\t]+', ' ',statuse_quoted_text)
           print 'tweet nested',statuse_quoted_text
       except:
-	    pass
+        pass
       if hasattr(statuse,'coordinates'):
         if statuse.coordinates != None:
           coordinates=statuse.coordinates
@@ -397,17 +399,29 @@ def get_tweets(user_keys,api,user,flag_id_user,f_log,flag_RT):
           geoloc= '%s, %s' % (list_geoloc[0],list_geoloc[1])
       if hasattr (statuse,'entities'):
         entities=statuse.entities
-        urls=entities['urls']
+        urls=entities['urls']  
         if len (urls) >0:
           url=urls[0]
           url_expanded= url['expanded_url']
-      text=re.sub('[\r\n\t]+', ' ',statuse.text)
+        hashtags=entities['hashtags']
+        if len (hashtags) >0:
+          first_ht= hashtags[0]
+          first_ht=first_ht['text']
+        user_mentions=entities['user_mentions']
+        if len (user_mentions) >0:
+          first_user_mentions=user_mentions[0]
+          first_user_mentions=first_user_mentions['screen_name']
+      if hasattr (statuse,'text'):
+        text=re.sub('[\r\n\t]+', ' ',statuse.text)
+      if hasattr (statuse,'full_text'):
+        text=re.sub('[\r\n\t]+', ' ',statuse.full_text)
       try:
         location=re.sub('[\r\n\t]+', ' ',statuse.user.location,re.UNICODE)
       except:
         pass
       try:
-        tweet= '%s\t%s\t@%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %  (statuse.id,statuse.created_at,statuse.author.screen_name,text, statuse.source,statuse.user.id,statuse.user.followers_count,statuse.user.friends_count,statuse.user.statuses_count,location,url_expanded, geoloc, statuse.retweet_count,statuse.retweeted,statuse.in_reply_to_status_id_str,statuse.favorite_count,statuse_quoted_text)
+        link_tweet= 'https://twitter.com/%s/status/%s' % (statuse.author.screen_name,statuse.id)
+        tweet= '%s\t%s\t@%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %  (statuse.id,statuse.created_at,statuse.author.screen_name,text, statuse.source,statuse.user.id,statuse.user.followers_count,statuse.user.friends_count,statuse.user.statuses_count,location,url_expanded, geoloc, statuse.retweet_count,statuse.in_reply_to_status_id_str,statuse.favorite_count,statuse_quoted_text,first_ht,first_user_mentions,link_tweet)
         tweets_list.append(tweet)
       except:
         pass
@@ -564,7 +578,7 @@ def main():
   elif flag_tweets:
     f_out=  codecs.open(prefix+'_tweets.txt','w',encoding='utf-8')
     print "-->Results in %s_tweets.txt\n" % prefix
-    f_out.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tRT count\tRetweed\tin reply\tfavorite count\tquoted\n')
+    f_out.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tRT count\tin reply\tfavorite count\tquoted\treply count\tquote count\thastags\tusers mentions\n')
     for line in f_users_group_file:
       line= line.rstrip('\r\n')
       data = line.split("\t")
