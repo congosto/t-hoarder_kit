@@ -415,6 +415,13 @@ def get_tweets(user_keys,api,user,flag_id_user,f_log,flag_RT):
         text=re.sub('[\r\n\t]+', ' ',statuse.text)
       if hasattr (statuse,'full_text'):
         text=re.sub('[\r\n\t]+', ' ',statuse.full_text)
+      if hasattr(statuse,'retweeted_status'):
+        statuse_RT= statuse.retweeted_status
+        if hasattr (statuse_RT,'full_text'):
+          RT_expand=re.sub('[\r\n\t]+', ' ',statuse_RT.full_text)
+          RT=re.match(r'(^RT @\w+: )',text)
+          if RT:
+            text= RT.group(1) + RT_expand
       try:
         location=re.sub('[\r\n\t]+', ' ',statuse.user.location,re.UNICODE)
       except:
