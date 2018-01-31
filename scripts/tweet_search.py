@@ -113,11 +113,14 @@ def tweet_search (user_keys,api,file_out,query):
       error=False
       if first_tweet:
         #print 'since_id', recent_tweet
-        page = api.search(query, since_id=recent_tweet,include_entities=True,result_type='recent',count=100)  # SearchResults containing list of statuses plus meta data
+        page = api.search(query, since_id=recent_tweet,include_entities=True,result_type='recent',count=100,tweet_mode='extended')  # SearchResults containing list of statuses plus meta data
         first_tweet=False
       else:
         #print 'max_id', recent_tweet-1
-        page = api.search(query, max_id=recent_tweet-1,include_entities=True,result_type='recent',count=100)  # SearchResults containing list of statuses plus meta data
+        page = api.search(query, max_id=recent_tweet-1,include_entities=True,result_type='recent',count=100,tweet_mode='extended')  # SearchResults containing list of statuses plus meta data
+    except KeyboardInterrupt:
+        print '\nGoodbye!'
+        exit(0)
     except:
       f_log.write('error en tweepy\t') 
       error=True
@@ -165,7 +168,19 @@ def tweet_search (user_keys,api,file_out,query):
               url_expanded= url['expanded_url']
         except:
           pass
-        text=re.sub('[\r\n\t]+', ' ',statuse.text)
+        try:
+          if 'media' in entities:
+            list_media=entities['media']
+            if len (list_media) >0:
+              media=list_media[0]
+              url_media= media['media_url']
+              type_media=media['type']
+        except:
+          pass
+        if hasattr (statuse,'text'):
+          text=re.sub('[\r\n\t]+', ' ',statuse.text)
+        if hasattr (statuse,'full_text'):
+          text=re.sub('[\r\n\t]+', ' ',statuse.full_text)
         try:
           location=re.sub('[\r\n\t]+', ' ',statuse.user.location,re.UNICODE)
         except:
