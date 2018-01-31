@@ -138,7 +138,10 @@ def main():
           pass
       if option == 1:
         os.chdir(path_keys)
-        command="python %stweet_auth.py '%s' '%s'" % (path_scripts,app_keys,user)
+        if args.windows:
+          command="python %stweet_auth.py %s %s" % (path_scripts,app_keys,user)
+        else:
+          command="python %stweet_auth.py '%s' '%s'" % (path_scripts,app_keys,user)
         os.system(command)
       elif option ==2:
         os.chdir(path_experiment)
