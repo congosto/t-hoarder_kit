@@ -190,14 +190,14 @@ class Counters(object):
     list_words=[]
     source_without_urls=u''
   #renove urls from tweet
-    urls=re.findall (r'(http[s]*://\S+)', source,re.U)
+    urls=re.findall (r'(http[s]*://\S+)', source,re.UNICODE)
     for url in urls:
       start=source.find(url)
       end=len(url)
       source_without_urls=source_without_urls+source[0:start-1]
       source=source[start+end:] 
     source_without_urls=source_without_urls+source
-    list_tokens=re.findall (r'[#@]*\w+', source_without_urls,re.U) 
+    list_tokens=re.findall (r'[#@]*\w+', source_without_urls,re.UNICODE) 
 #  remove users and hashtags
     for token in list_tokens:
       if (token.find('#') == -1) and (token.find('@') == -1):
@@ -209,7 +209,7 @@ class Counters(object):
 
   def token_hashtags (self,source):
     source=strip_accents (source)
-    list_tokens=re.findall (r'#\w+', source,re.U)
+    list_tokens=re.findall (r'#\w+', source,re.UNICODE)
     return list_tokens
 
   def write_top (self,top,type_top):
@@ -622,7 +622,7 @@ def get_filter (file):
 
 def get_tweet (tweet):
    data = tweet.split('\t')
-   if len (data) >= 10:
+   try:
      id_tweet = data[0]
      timestamp = data[1]
      date_hour =re.findall(r'(\d\d\d\d)-(\d\d)-(\d\d)\s(\d\d):(\d\d):(\d\d)',timestamp,re.U)
@@ -636,14 +636,14 @@ def get_tweet (tweet):
      statuses = data[8]
      loc = data[9]
      return (year,month,day,hour,minutes,seconds, author,text,app,user_id,followers,following,statuses,loc)
-   else:
+   except:
      print ' tweet not match'
      return None
 
 def main():
-  reload(sys)
-  sys.setdefaultencoding('utf-8')
-  sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
+  #reload(sys)
+  #sys.setdefaultencoding('utf-8')
+  #sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
   #defino argumentos de script
   parser = argparse.ArgumentParser(description='Getting entities')
   parser.add_argument('file_in', type=str, help='File with the tweets')
