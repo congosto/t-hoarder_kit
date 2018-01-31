@@ -43,7 +43,6 @@ class oauth_keys(object):
       self.user_keys.append(line.strip('\n'))
     f.close()
     return
-
     
   def get_access(self):
     try: 
@@ -181,6 +180,13 @@ def tweet_search (user_keys,api,file_out,query):
           text=re.sub('[\r\n\t]+', ' ',statuse.text)
         if hasattr (statuse,'full_text'):
           text=re.sub('[\r\n\t]+', ' ',statuse.full_text)
+        if hasattr(statuse,'retweeted_status'):
+          statuse_RT= statuse.retweeted_status
+          if hasattr (statuse_RT,'full_text'):
+            RT_expand=re.sub('[\r\n\t]+', ' ',statuse_RT.full_text)
+            RT=re.match(r'(^RT @\w+: )',text)
+            if RT:
+              text= RT.group(1) + RT_expand
         try:
           location=re.sub('[\r\n\t]+', ' ',statuse.user.location,re.UNICODE)
         except:
