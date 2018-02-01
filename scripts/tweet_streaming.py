@@ -74,13 +74,14 @@ class StreamWatcherListener(tweepy.StreamListener):
     self.f_out= codecs.open(file_out, 'a',encoding='utf-8')
     self.f_log= codecs.open(file_log, 'a',encoding='utf-8')
     if head:
-      self.f_out.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tname\tdescription\turl_media\ttype media\tquoted\n')
+      self.f_out.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tname\tdescription\turl_media\ttype media\tquoted\tLang\n')
 
   def on_data(self, data):
     statuse = json.loads(data)
     if 'delete' in statuse:
       return True # keep stream alive
     if 'id' in statuse:
+      id_tweet= statuse['id']
       statuse_quoted_text=None
       geoloc=None
       url_expanded =None
@@ -90,52 +91,45 @@ class StreamWatcherListener(tweepy.StreamListener):
       location=None
       description=None
       name=None
-      date=None
-      app=None
-      try:
-        id_tweet = statuse['id']
-        recent_tweet= id_tweet
-        profile_user= statuse['user']
-        if 'quoted_status_id' in statuse:
-          print statuse['quoted_status_id']
-          if 'quoted_status' in statuse:
-            statuse_quoted=statuse['quoted_status']
-            if 'text' in statuse_quoted:
-              statuse_quoted_text=statuse_quoted['text']
-              statuse_quoted_text=re.sub('[\r\n\t]+', ' ',statuse_quoted_text)
-              print 'tweet nested',statuse_quoted_text
-      except:
-        pass
-      try:
-        if 'coordinates' in statuse:
+      date = parse_datetime(statuse['created_at'])
+      app = parse_html_value(statuse['source'])
+
+#get geolocation
+      if 'coordinates' in statuse:
+        try:
           coordinates=statuse['coordinates']
           if coordinates != None:
-           list_geoloc = coordinates['coordinates']
-           geoloc= '%s, %s' % (list_geoloc[0],list_geoloc[1])
-      except:
-        pass
-      try:
-        if 'entities' in statuse:
+            list_geoloc = coordinates['coordinates']
+            geoloc= '%s, %s' % (list_geoloc[0],list_geoloc[1])
+        except:
+          text_error = '---------------->bad coordinates, id tweet %s at %s\n' % (id_tweet,datetime.datetime.now())
+          self.f_log.write (text_error)
+#get entities
+      if 'entities' in statuse:
+        try:
           entities=statuse['entities']
           urls=entities['urls']
           if len (urls) >0:
             url=urls[0]
             url_expanded= url['expanded_url']
-      except:
-        pass
+        except:
+          text_error = '---------------->bad enttity urls, id tweet %s at %s\n' % (id_tweet,datetime.datetime.now())
+          self.f_log.write (text_error)
+        try:
+          if 'media' in entities:
+            list_media=entities['media']
+            if len (list_media) >0:
+              media=list_media[0]
+              url_media= media['media_url']
+              type_media=media['type']
+        except:
+          text_error = '---------------->bad entity media, at %s id tweet %s \n' % (datetime.datetime.now(),id_tweet)
+          self.f_log.write (text_error)
+#get text
       try:
-        if 'media' in entities:
-          list_media=entities['media']
-          if len (list_media) >0:
-            media=list_media[0]
-            url_media= media['media_url']
-            type_media=media['type']
-      except:
-        pass
-      try:
-        text=re.sub('[\r\n\t]+', ' ',statuse['text'])
+        if 'text' in statuse:
+          text=re.sub('[\r\n\t]+', ' ',statuse['text'])
         if 'extended_tweet' in statuse:
-          print '-->existe extended_tweet'
           extended_tweet= statuse['extended_tweet']
           text=re.sub('[\r\n\t]+', ' ',extended_tweet['full_text'])
         if 'retweeted_status' in statuse:
@@ -147,30 +141,53 @@ class StreamWatcherListener(tweepy.StreamListener):
             if RT:
               text= RT.group(1) + RT_expand
       except:
-        exit()
-      try:
-        if profile_user['location'] != None:
-          location=re.sub('[\r\n\t]+', ' ',profile_user['location'],re.UNICODE)
-      except:
-        pass
-      try:
-        if profile_user['description'] != None:
-          description=re.sub('[\r\n\t]+', ' ',profile_user['description'],re.UNICODE)
-      except:
-        pass
-      try:
-        if profile_user['name'] != None:
-          name=re.sub('[\r\n\t]+', ' ',profile_user['name'],re.UNICODE)
-      except:
-        pass    
-      try:
-        date = parse_datetime(statuse['created_at'])
-        app = parse_html_value(statuse['source'])
-        tweet= '%s\t%s\t@%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %  (id_tweet,date,profile_user['screen_name'],text, app,profile_user['id'], profile_user['followers_count'],profile_user['friends_count'],profile_user['statuses_count'],location,url_expanded, geoloc,name,description, url_media,type_media,statuse_quoted_text)
+          text_error = '---------------->bad tweet text,  at %s id tweet %s \n' % (datetime.datetime.now(),id_tweet)
+          self.f_log.write (text_error)
+#get quoted if exist
+      if 'quoted_status_id' in statuse:
+        try:
+          print statuse['quoted_status_id']
+          if 'quoted_status' in statuse:
+            statuse_quoted=statuse['quoted_status']
+            if 'text' in statuse_quoted:
+              statuse_quoted_text=statuse_quoted['text']
+              statuse_quoted_text=re.sub('[\r\n\t]+', ' ',statuse_quoted_text)
+              print 'tweet nested',statuse_quoted_text
+        except:
+          text_error = '---------------->bad quoted,  at %s id tweet %s \n' % (datetime.datetime.now(),id_tweet)
+          self.f_log.write (text_error)
+#get user profile
+      if 'user' in statuse:
+        profile_user= statuse['user']
+        try:
+          if 'location' in profile_user:
+            if profile_user['location'] != None:
+              location=re.sub('[\r\n\t]+', ' ',profile_user['location'],re.UNICODE)
+        except:
+          text_error = '---------------->bad user location:%s ,  at %s id tweet %s \n' % (datetime.datetime.now(),profile_user['location'],id_tweet)
+          self.f_log.write (text_error)
+        try:
+          if 'description' in profile_user:
+            if profile_user['description'] != None:
+              description=re.sub('[\r\n\t]+', ' ',profile_user['description'],re.UNICODE)
+        except:
+          text_error = '---------------->bad user description,  at %s id tweet %s \n' % (datetime.datetime.now(),id_tweet)
+          self.f_log.write (text_error)
+        try:
+          if 'name' in profile_user:
+            if profile_user['name'] != None:
+              name=re.sub('[\r\n\t]+', ' ',profile_user['name'],re.UNICODE)
+        except:
+          text_error = '---------------->bad user name,  at %s id tweet %s \n' % (datetime.datetime.now(),id_tweet)
+          self.f_log.write (text_error) 
+      #try:
+      if True:
+        tweet= '%s\t%s\t@%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %  (id_tweet,date, profile_user['screen_name'],text, app, profile_user['id'], profile_user['followers_count'],profile_user['friends_count'],profile_user['statuses_count'],location,url_expanded, geoloc,name,description, url_media,type_media,statuse_quoted_text,statuse['lang'])
         self.f_out.write(tweet) 
         print '---->collected tweet', id_tweet
-      except:
-        text_error = '---------------> parser error  at %s, id-tweet %s\n' % ( datetime.datetime.now(),statuse)
+      #except:
+      else:
+        text_error = '---------------> format error  at %s, id-tweet %s\n' % ( datetime.datetime.now(),id_tweet)
         self.f_log.write (text_error)
         pass
     else:
