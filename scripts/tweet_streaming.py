@@ -104,24 +104,66 @@ class StreamWatcherListener(tweepy.StreamListener):
               statuse_quoted_text=statuse_quoted['text']
               statuse_quoted_text=re.sub('[\r\n\t]+', ' ',statuse_quoted_text)
               print 'tweet nested',statuse_quoted_text
+      except:
+        pass
+      try:
         if 'coordinates' in statuse:
           coordinates=statuse['coordinates']
           if coordinates != None:
            list_geoloc = coordinates['coordinates']
            geoloc= '%s, %s' % (list_geoloc[0],list_geoloc[1])
+      except:
+        pass
+      try:
         if 'entities' in statuse:
           entities=statuse['entities']
           urls=entities['urls']
           if len (urls) >0:
             url=urls[0]
             url_expanded= url['expanded_url']
+      except:
+        pass
+      try:
+        if 'media' in entities:
+          list_media=entities['media']
+          if len (list_media) >0:
+            media=list_media[0]
+            url_media= media['media_url']
+            type_media=media['type']
+      except:
+        pass
+      try:
         text=re.sub('[\r\n\t]+', ' ',statuse['text'])
+        if 'extended_tweet' in statuse:
+          print '-->existe extended_tweet'
+          extended_tweet= statuse['extended_tweet']
+          text=re.sub('[\r\n\t]+', ' ',extended_tweet['full_text'])
+        if 'retweeted_status' in statuse:
+          statuse_RT= statuse['retweeted_status']
+          if 'extended_tweet' in statuse_RT:
+            extended_RT= statuse_RT['extended_tweet']
+            RT_expand=re.sub('[\r\n\t]+', ' ',extended_RT['full_text'])
+            RT=re.match(r'(^RT @\w+: )',text)
+            if RT:
+              text= RT.group(1) + RT_expand
+      except:
+        exit()
+      try:
         if profile_user['location'] != None:
           location=re.sub('[\r\n\t]+', ' ',profile_user['location'],re.UNICODE)
+      except:
+        pass
+      try:
         if profile_user['description'] != None:
           description=re.sub('[\r\n\t]+', ' ',profile_user['description'],re.UNICODE)
+      except:
+        pass
+      try:
         if profile_user['name'] != None:
           name=re.sub('[\r\n\t]+', ' ',profile_user['name'],re.UNICODE)
+      except:
+        pass    
+      try:
         date = parse_datetime(statuse['created_at'])
         app = parse_html_value(statuse['source'])
         tweet= '%s\t%s\t@%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %  (id_tweet,date,profile_user['screen_name'],text, app,profile_user['id'], profile_user['followers_count'],profile_user['friends_count'],profile_user['statuses_count'],location,url_expanded, geoloc,name,description, url_media,type_media,statuse_quoted_text)
