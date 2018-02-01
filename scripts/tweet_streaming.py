@@ -180,13 +180,11 @@ class StreamWatcherListener(tweepy.StreamListener):
         except:
           text_error = '---------------->bad user name,  at %s id tweet %s \n' % (datetime.datetime.now(),id_tweet)
           self.f_log.write (text_error) 
-      #try:
-      if True:
+      try:
         tweet= '%s\t%s\t@%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %  (id_tweet,date, profile_user['screen_name'],text, app, profile_user['id'], profile_user['followers_count'],profile_user['friends_count'],profile_user['statuses_count'],location,url_expanded, geoloc,name,description, url_media,type_media,statuse_quoted_text,statuse['lang'])
         self.f_out.write(tweet) 
         print '---->collected tweet', id_tweet
-      #except:
-      else:
+      except:
         text_error = '---------------> format error  at %s, id-tweet %s\n' % ( datetime.datetime.now(),id_tweet)
         self.f_log.write (text_error)
         pass
