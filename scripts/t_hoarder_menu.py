@@ -180,9 +180,9 @@ def main():
         os.chdir(path_experiment)
         inputfile=get_inputfile ('Enter input file name with the users profiles (It is necessary to get before the users profiles): ',path_experiment)
         if args.windows:
-          command="python %stweet_rest.py %s %s %s  --connections" % (path_scripts,file_app_keys,file_user_keys, inputfile)
+          command="python %stweet_rest.py %s %s %s  --connections" % (path_scripts,file_app_keys,file_user_keys, inputfile) 
         else:
-          command="python %stweet_rest.py '%s' '%s' '%s'  '--connections' " % (path_scripts,file_app_keys,file_user_keys, inputfile)
+          command="python %stweet_rest.py '%s' '%s' '%s'  '--connections' " % (path_scripts,file_app_keys,file_user_keys, inputfile) 
         fast = raw_input ('opción --fast? (y/n:) ')
         if fast == 'y': 
           if args.windows:
