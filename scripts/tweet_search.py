@@ -105,7 +105,7 @@ def tweet_search (user_keys,api,file_out,query):
   first_tweet=True
   f_log.write(('%s\t') % ('First time\t'))
   if head:
-    f.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tname\tdescription\turl_media\ttype media\tquoted\n')
+    f.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tname\tdescription\turl_media\ttype media\tquoted\trelation\treplied_id\tuser replied\tretweeted_id\tuser retweeted\tquoted_id\tuser quoted\tfirst HT\tlang\tlink\n')
   while True:
     try:
       oauth_keys.check_rate_limits (user_keys,api,'search','/search/tweets',900)
@@ -118,12 +118,12 @@ def tweet_search (user_keys,api,file_out,query):
         #print 'max_id', recent_tweet-1
         page = api.search(query, max_id=recent_tweet-1,include_entities=True,result_type='recent',count=100,tweet_mode='extended')  # SearchResults containing list of statuses plus meta data
     except KeyboardInterrupt:
-        print '\nGoodbye!'
-        exit(0)
+      print '\nGoodbye!'
+      exit(0)
     except:
-      f_log.write('error en tweepy\t') 
+      text_error = '---------------->Tweepy error tweet at %s\n' % (time.asctime())
+      f_log.write (text_error)
       error=True
-      pass
     if len(page) == 0:
       break
     if not error:
@@ -138,73 +138,150 @@ def tweet_search (user_keys,api,file_out,query):
         location=None
         description=None
         name=None
-        profile_user= statuse.user
+        relation=None
+        quoted_id=None
+        replied_id=None
+        retweeted_id=None
+        user_replied=None
+        user_quoted=None
+        user_retweeted=None
+        first_HT=None
+#get interactions Ids
         try:
-          if hasattr(statuse, 'quoted_status_id'):
-            if statuse.coordinates != None:
-              print statuse.quoted_status_id
-              statuse_quoted=statuse.quoted_status
-              statuse_quoted_text=statuse_quoted.text
+          id_tweet=statuse.id_str
+          if statuse.in_reply_to_status_id_str != None:
+            relation='reply'
+            replied_id= statuse.in_reply_to_status_id_str
+            user_replied=statuse.in_reply_to_screen_name
+          if hasattr(statuse, 'quoted_status'):
+            relation='quote'
+            quoted_id=statuse.quoted_status_id_str
+            user_quoted=statuse.quoted_status['user']['screen_name']
+          elif hasattr(statuse,'retweeted_status'):
+            relation='RT'
+            retweeted_id=statuse.retweeted_status.id_str
+            user_retweeted=statuse.retweeted_status.user.screen_name
+            if hasattr(statuse.retweeted_status,'quoted_status'):
+              quoted_id=statuse.retweeted_status.quoted_status['id_str']
+              user_quoted=statuse.retweeted_status.quoted_status['user']['screen_name']
+        except:
+          text_error = '---------------->bad interactions ids, id tweet %s at %s\n' % (id_tweet,time.asctime())
+          f_log.write (text_error)
+#get quote
+        try:
+          if hasattr(statuse, 'quoted_status'):
+            statuse_quoted_text=statuse.quoted_status['full_text']
+            statuse_quoted_text=re.sub('[\r\n\t]+', ' ',statuse_quoted_text)
+          elif hasattr(statuse, 'retweeted_status'):
+            if hasattr(statuse.retweeted_status,'quoted_status'):
+              statuse_quoted_text=statuse.retweeted_status.quoted_status['full_text']
               statuse_quoted_text=re.sub('[\r\n\t]+', ' ',statuse_quoted_text)
-              print 'tweet nested',statuse_quoted_text
         except:
-          pass
-        try:
-          if hasattr(statuse,'coordinates'):
-            if statuse.coordinates != None:
-              coordinates=statuse.coordinates
-              print coordinates
-              list_geoloc = coordinates['coordinates']
-              geoloc= '%s, %s' % (list_geoloc[0],list_geoloc[1])
-        except:
-         pass
-        try:
-          if hasattr (statuse,'entities'):
-            entities=statuse.entities
+          text_error = '---------------->bad quoted, id tweet %s at %s\n' % (id_tweet,time.asctime())
+          f_log.write (text_error)
+#get geolocation
+        if hasattr(statuse,'coordinates'):
+          coordinates=statuse.coordinates
+          if coordinates != None:
+            try:
+              if 'coordinates' in coordinates:
+                list_geoloc = coordinates['coordinates']
+                print list_geoloc
+                geoloc= '%s, %s' % (list_geoloc[0],list_geoloc[1])
+            except:
+              text_error = '---------------->bad quoted, id tweet %s at %s\n' % (id_tweet,time.asctime())
+              f_log.write (text_error)
+#get entities
+        if hasattr (statuse,'entities'):
+          entities=statuse.entities
+        if  hasattr (statuse,'retweeted_status'):
+          if hasattr (statuse.retweeted_status,'entities'):
+            entities=statuse.retweeted_status.entities
+        if entities != None:
+          try:
             urls=entities['urls']
             if len (urls) >0:
-              url=urls[0]
-              url_expanded= url['expanded_url']
+              url_expanded= urls[0]['expanded_url']
+          except:
+            text_error = '---------------->bad entity urls, id tweet %s at %s\n' % (id_tweet,time.asctime())
+            self.f_log.write (text_error)
+          try:
+            if 'media' in entities:
+              list_media=entities['media']
+              if len (list_media) >0:
+                url_media= list_media[0]['media_url']
+                type_media=list_media[0]['type']
+          except:
+            text_error = '---------------->bad entity Media, id tweet %s at %s\n' % (id_tweet,time.asctime())
+            f_log.write (text_error)
+          try:
+            if 'hashtags' in entities:
+              HTs=entities['hashtags']
+              if len (HTs) >0:
+                first_HT=HTs[0]['text']
+          except:
+            text_error = '---------------->bad entity HT, id tweet %s at %s\n' % (id_tweet,time.asctime())
+            f_log.write (text_error)
+#get text
+        try:
+          if hasattr (statuse,'full_text'):
+            text=re.sub('[\r\n\t]+', ' ',statuse.full_text)
+          if hasattr(statuse,'retweeted_status'):
+            Is_RT=True
+            if hasattr (statuse.retweeted_status,'full_text'):
+              RT_expand=re.sub('[\r\n\t]+', ' ',statuse.retweeted_status.full_text)
+              RT=re.match(r'(^RT @\w+: )',text)
+              if RT:
+               text= RT.group(1) + RT_expand
+        except:
+          text_error = '---------------->bad tweet text,  at %s id tweet %s \n' % (time.asctime(),id_tweet)
+          f_log.write (text_error)
+        try:
+            location=re.sub('[\r\n\t]+', ' ',statuse.user.location,re.UNICODE)
         except:
           pass
         try:
-          if 'media' in entities:
-            list_media=entities['media']
-            if len (list_media) >0:
-              media=list_media[0]
-              url_media= media['media_url']
-              type_media=media['type']
-        except:
-          pass
-        if hasattr (statuse,'text'):
-          text=re.sub('[\r\n\t]+', ' ',statuse.text)
-        if hasattr (statuse,'full_text'):
-          text=re.sub('[\r\n\t]+', ' ',statuse.full_text)
-        if hasattr(statuse,'retweeted_status'):
-          statuse_RT= statuse.retweeted_status
-          if hasattr (statuse_RT,'full_text'):
-            RT_expand=re.sub('[\r\n\t]+', ' ',statuse_RT.full_text)
-            RT=re.match(r'(^RT @\w+: )',text)
-            if RT:
-              text= RT.group(1) + RT_expand
-        try:
-          location=re.sub('[\r\n\t]+', ' ',statuse.user.location,re.UNICODE)
-        except:
-         pass
-        try:
-         description=re.sub('[\r\n\t]+', ' ',profile_user['description'],re.UNICODE)
+          description=re.sub('[\r\n\t]+', ' ',statuse.user.description,re.UNICODE)
         except:
           pass 
         try:    
-          name=re.sub('[\r\n\t]+', ' ',profile_user['name'],re.UNICODE)
+          name=re.sub('[\r\n\t]+', ' ',statuse.user.name,re.UNICODE)
         except:
           pass
         try:
-          tweet= '%s\t%s\t@%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %  (statuse.id,statuse.created_at,profile_user.screen_name,text, statuse.source,profile_user.id, profile_user.followers_count,profile_user.friends_count,profile_user.statuses_count,location,url_expanded, geoloc,name,description, url_media,type_media,statuse_quoted_text)
+          link_tweet= 'https://twitter.com/%s/status/%s' % (statuse.user.screen_name,statuse.id)
+          tweet= '%s\t%s\t@%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %  (statuse.id,
+                  statuse.created_at,
+                  statuse.user.screen_name,
+                  text,
+                  statuse.source,
+                  statuse.user.id,
+                  statuse.user.followers_count,
+                  statuse.user.friends_count,
+                  statuse.user.statuses_count,
+                  location,
+                  url_expanded,
+                  geoloc,
+                  name,
+                  description,
+                  url_media,
+                  type_media,
+                  statuse_quoted_text,
+                  relation,
+                  replied_id,
+                  user_replied,
+                  retweeted_id,
+                  user_retweeted,
+                  quoted_id,
+                  user_quoted,
+                  first_HT,
+                  statuse.lang,
+                  link_tweet)
           f.write(tweet) 
-          n_tweets= n_tweets +1 
+          n_tweets= n_tweets +1
         except :
-          f_log.write('Twitter Error\t')
+          text_error = '---------------->bad format,  at %s id tweet %s \n' % (time.asctime(),id_tweet)
+          f_log.write (text_error)
 # write log file
   f_log.write(('wrote %s tweets\t') % ( n_tweets))
   f_log.write(('recent tweet Id %s \n') % (recent_tweet))
