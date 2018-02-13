@@ -86,7 +86,7 @@ def main():
     path_scripts='%s/scripts/' % root
     path_store='%s/store/' % root
   list_suboptions_2= ['profile','followers','following','relations','tweets','h_index']
-  list_suboptions_6= ['RT','reply','mentions']
+  list_suboptions_6= ['RT','reply','mention']
   list_suboptions_7= ['sort','entities','classify','users','spread']
   enviroment=False
   option=8
