@@ -348,6 +348,7 @@ def get_tweets(user_keys,api,user,flag_id_user,f_log,flag_RT):
   first_tweet=True
   hay_tweets=True
   recent_tweet=1000
+  count_tweets=0
   while  hay_tweets:
     oauth_keys.check_rate_limits (user_keys,api,'statuses','/statuses/user_timeline',900)
     try:
@@ -367,71 +368,157 @@ def get_tweets(user_keys,api,user,flag_id_user,f_log,flag_RT):
       break
     #print '--> len page', len(page) 
     #page is a list of statuses
-    print 'collected %s tweets\n' % len (tweets_list)
+    print 'collected %s tweets count_tweets %s\n' % (len (tweets_list),count_tweets)
     num_pages +=1
     if len(page) <=1:
         hay_tweets=False
         break
-    #print "--> num pages", num_pages
+    print "--> num pages", num_pages,"len page", len(page)
     for statuse in page:
+      count_tweets+=1
       #print recent_tweet,statuse.id
       recent_tweet= statuse.id
       url_expanded =None
       geoloc=None
       location=None
       statuse_quoted_text= None
-      first_ht=''
-      first_user_mentions=''
+      relation=None
+      quoted_id=None
+      replied_id=None
+      retweeted_id=None
+      user_replied=None
+      user_quoted=None
+      user_retweeted=None
+      first_HT=None
+      url_media= None
+      type_media=None
+#get interactions Ids
       try:
-        if hasattr(statuse, 'quoted_status_id'):
-          #print statuse.quoted_status_id
-          statuse_quoted=statuse.quoted_status
-          statuse_quoted_text=statuse_quoted.text
-          statuse_quoted_text=re.sub('[\r\n\t]+', ' ',statuse_quoted_text)
-          print 'tweet nested',statuse_quoted_text
+        id_tweet=statuse.id_str
+        if statuse.in_reply_to_status_id_str != None:
+          relation='reply'
+          replied_id= statuse.in_reply_to_status_id_str
+          user_replied=statuse.in_reply_to_screen_name
+        if hasattr(statuse, 'quoted_status'):
+          relation='quote'
+          quoted_id=statuse.quoted_status_id_str
+          user_quoted=statuse.quoted_status['user']['screen_name']
+        elif hasattr(statuse,'retweeted_status'):
+          relation='RT'
+          retweeted_id=statuse.retweeted_status.id_str
+          user_retweeted=statuse.retweeted_status.user.screen_name
+          if hasattr(statuse.retweeted_status,'quoted_status'):
+            quoted_id=statuse.retweeted_status.quoted_status['id_str']
+            user_quoted=statuse.retweeted_status.quoted_status['user']['screen_name']
       except:
-        pass
+        text_error = '---------------->bad interactions ids, id tweet %s at %s\n' % (id_tweet,time.asctime())
+        f_log.write (text_error)
+#get quote
+      try:
+        if hasattr(statuse, 'quoted_status'):
+          statuse_quoted_text=statuse.quoted_status['full_text']
+          statuse_quoted_text=re.sub('[\r\n\t]+', ' ',statuse_quoted_text)
+        elif hasattr(statuse, 'retweeted_status'):
+          if hasattr(statuse.retweeted_status,'quoted_status'):
+            statuse_quoted_text=statuse.retweeted_status.quoted_status['full_text']
+            statuse_quoted_text=re.sub('[\r\n\t]+', ' ',statuse_quoted_text)
+      except:
+        text_error = '---------------->bad quoted, id tweet %s at %s\n' % (id_tweet,time.asctime())
+        f_log.write (text_error)
+#get geolocation
       if hasattr(statuse,'coordinates'):
-        if statuse.coordinates != None:
-          coordinates=statuse.coordinates
-          print coordinates
-          list_geoloc = coordinates['coordinates']
-          geoloc= '%s, %s' % (list_geoloc[0],list_geoloc[1])
+        coordinates=statuse.coordinates
+        if coordinates != None:
+          try:
+            if 'coordinates' in coordinates:
+              list_geoloc = coordinates['coordinates']
+              print list_geoloc
+              geoloc= '%s, %s' % (list_geoloc[0],list_geoloc[1])
+          except:
+            text_error = '---------------->bad coordinates, id tweet %s at %s\n' % (id_tweet,time.asctime())
+            f_log.write (text_error)
+#get entities
       if hasattr (statuse,'entities'):
         entities=statuse.entities
-        urls=entities['urls']  
-        if len (urls) >0:
-          url=urls[0]
-          url_expanded= url['expanded_url']
-        hashtags=entities['hashtags']
-        if len (hashtags) >0:
-          first_ht= hashtags[0]
-          first_ht=first_ht['text']
-        user_mentions=entities['user_mentions']
-        if len (user_mentions) >0:
-          first_user_mentions=user_mentions[0]
-          first_user_mentions=first_user_mentions['screen_name']
-      if hasattr (statuse,'text'):
-        text=re.sub('[\r\n\t]+', ' ',statuse.text)
-      if hasattr (statuse,'full_text'):
-        text=re.sub('[\r\n\t]+', ' ',statuse.full_text)
-      if hasattr(statuse,'retweeted_status'):
-        statuse_RT= statuse.retweeted_status
-        if hasattr (statuse_RT,'full_text'):
-          RT_expand=re.sub('[\r\n\t]+', ' ',statuse_RT.full_text)
-          RT=re.match(r'(^RT @\w+: )',text)
-          if RT:
-            text= RT.group(1) + RT_expand
+      if  hasattr (statuse,'retweeted_status'):
+        if hasattr (statuse.retweeted_status,'entities'):
+          entities=statuse.retweeted_status.entities
+      if entities != None:
+        try:
+          if 'urls' in entities:
+            urls=entities['urls']  
+            if len (urls) >0:
+              url_expanded=urls[0]['expanded_url']
+        except:
+          text_error = '---------------->bad entity urls, id tweet %s at %s\n' % (id_tweet,time.asctime())
+          f_log.write (text_error)
+        try:
+          if 'hashtags' in entities:
+            HTs=entities['hashtags']
+            if len (HTs) >0:
+              first_HT=HTs[0]['text']
+        except:
+          text_error = '---------------->bad entity HT, id tweet %s at %s\n' % (id_tweet,time.asctime())
+          f_log.write (text_error)
+        try:
+          if 'media' in entities:
+            list_media=entities['media']
+            if len (list_media) >0:
+              url_media= list_media[0]['media_url']
+              type_media=list_media[0]['type']
+        except:
+          text_error = '---------------->bad entity Media, id tweet %s at %s\n' % (id_tweet,time.asctime())
+          f_log.write (text_error)
+#get text
       try:
-        location=re.sub('[\r\n\t]+', ' ',statuse.user.location,re.UNICODE)
+        if hasattr (statuse,'full_text'):
+          text=re.sub('[\r\n\t]+', ' ',statuse.full_text)
+        if hasattr(statuse,'retweeted_status'):
+          if hasattr (statuse.retweeted_status,'full_text'):
+            RT_expand=re.sub('[\r\n\t]+', ' ',statuse.retweeted_status.full_text)
+            RT=re.match(r'(^RT @\w+: )',text)
+            if RT:
+              text= RT.group(1) + RT_expand
+      except:
+        text_error = '---------------->bad tweet text,  at %s id tweet %s \n' % (time.asctime(),id_tweet)
+        f_log.write (text_error)
+      try:
+          location=re.sub('[\r\n\t]+', ' ',statuse.user.location,re.UNICODE)
       except:
         pass
       try:
-        link_tweet= 'https://twitter.com/%s/status/%s' % (statuse.author.screen_name,statuse.id)
-        tweet= '%s\t%s\t@%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %  (statuse.id,statuse.created_at,statuse.author.screen_name,text, statuse.source,statuse.user.id,statuse.user.followers_count,statuse.user.friends_count,statuse.user.statuses_count,location,url_expanded, geoloc, statuse.retweet_count,statuse.in_reply_to_status_id_str,statuse.favorite_count,statuse_quoted_text,first_ht,first_user_mentions,link_tweet)
+        link_tweet= 'https://twitter.com/%s/status/%s' % (statuse.user.screen_name,statuse.id)
+        tweet= '%s\t%s\t@%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % (statuse.id,
+               statuse.created_at,
+               statuse.user.screen_name,
+               text,
+               statuse.source,
+               statuse.user.id,
+               statuse.user.followers_count,
+               statuse.user.friends_count,
+               statuse.user.statuses_count,
+               location,
+               url_expanded,
+               geoloc,
+               statuse.retweet_count,
+               statuse.favorite_count,
+               url_media,
+               type_media,
+               statuse_quoted_text,
+               relation,
+               replied_id,
+               user_replied,
+               retweeted_id,
+               user_retweeted,
+               quoted_id,
+               user_quoted,
+               first_HT,
+               statuse.lang,
+               link_tweet)
         tweets_list.append(tweet)
       except:
-        pass
+        text_error = '---------------->bad format,  at %s id tweet %s \n' % (time.asctime(),id_tweet)
+        f_log.write (text_error)
   return tweets_list
 
 def get_attrib (f_in):
@@ -524,7 +611,7 @@ def main():
   if flag_profile:
     f_out=  codecs.open(prefix+'_profiles.txt', 'w',encoding='utf-8', errors='ignore')
     print "--> Results in %s_profiles.txt\n" % prefix   
-    f_out.write ('id user\tscreen_name\tnet\trelation\tfollowers\tfollowing\tstatuses\tlists\tsine\tname\ttime zone\tlocation\tweb\tavatar\tbio\ttimestamp\n')
+    f_out.write ('id user\tscreen_name\tnet\trelation\tfollowers\tfollowing\tstatuses\tlists\tsince\tname\ttime zone\tlocation\tweb\tavatar\tbio\ttimestamp\n')
     for line in f_users_group_file:
       user= line.rstrip('\r\n')
       oauth_keys.check_rate_limits (user_keys,api,'users','/users/show/:id',900)
@@ -540,7 +627,7 @@ def main():
     name_file_out= '%s_follower_profiles.txt' % (prefix)
     f_out=  codecs.open(name_file_out, 'w',encoding='utf-8', errors='ignore')
     print "-->Results in %s\n" % name_file_out
-    f_out.write ('id user\tscreen_name\tnet\trelation\tfollowers\tfollowing\tstatuses\tlists\tsine\tname\ttime zone\tlocation\tweb\tavatar\tbio\ttimestamp\n')
+    f_out.write ('id user\tscreen_name\tnet\trelation\tfollowers\tfollowing\tstatuses\tlists\tsince\tname\ttime zone\tlocation\tweb\tavatar\tbio\ttimestamp\n')
     for line in f_users_group_file:
       user= line.rstrip('\r\n')
       dict_friends= {}
@@ -550,7 +637,7 @@ def main():
     name_file_out= '%s_following_profiles.txt' % (prefix)
     f_out=  codecs.open(name_file_out, 'w',encoding='utf-8', errors='ignore')
     print "-->Results in %s\n" % name_file_out
-    f_out.write ('id user\tscreen_name\tnet\trelation\tfollowers\tfollowing\tstatuses\tlists\tsine\tname\ttime zone\tlocation\tweb\tavatar\tbio\ttimestamp\n')
+    f_out.write ('id user\tscreen_name\tnet\trelation\tfollowers\tfollowing\tstatuses\tlists\tsince\tname\ttime zone\tlocation\tweb\tavatar\tbio\ttimestamp\n')
     for line in f_users_group_file:
       user= line.rstrip('\r\n')
       dict_friends= {}
@@ -559,7 +646,7 @@ def main():
   elif flag_relations:
     name_file_out= '%s_relation_profiles.txt' % (prefix)
     f_out=  codecs.open(name_file_out, 'w',encoding='utf-8', errors='ignore')
-    f_out.write ('id user\tscreen_name\tnet\trelation\tfollowers\tfollowing\tstatuses\tlists\tsine\tname\ttime zone\tlocation\tweb\tavatar\tbio\ttimestamp\n')
+    f_out.write ('id user\tscreen_name\tnet\trelation\tfollowers\tfollowing\tstatuses\tlists\tsince\tname\ttime zone\tlocation\tweb\tavatar\tbio\ttimestamp\n')
     print "-->Results in %s\n" % (name_file_out)
     for line in f_users_group_file:
       user= line.rstrip('\r\n')
@@ -585,7 +672,7 @@ def main():
   elif flag_tweets:
     f_out=  codecs.open(prefix+'_tweets.txt','w',encoding='utf-8')
     print "-->Results in %s_tweets.txt\n" % prefix
-    f_out.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tRT count\tin reply\tfavorite count\tquoted\treply count\tquote count\thastags\tusers mentions\n')
+    f_out.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tRT count\tfavorite count\turl_media\ttype media\tquoted\trelation\treplied_id\tuser replied\tretweeted_id\tuser retweeted\tquoted_id\tuser quoted\tfirst HT\tlang\tlink\n')
     for line in f_users_group_file:
       line= line.rstrip('\r\n')
       data = line.split("\t")
