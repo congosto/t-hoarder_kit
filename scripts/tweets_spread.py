@@ -336,7 +336,7 @@ def clean_output_files(output_file_name):
 
 def get_tweet (tweet):
    data = tweet.split('\t')
-   if len (data) >= 4:
+   try:
      id_tweet = data[0]
      timestamp = data[1]
      date_hour =re.findall(r'(\d\d\d\d)-(\d\d)-(\d\d)\s(\d\d):(\d\d):(\d\d)',timestamp,re.U)
@@ -344,7 +344,7 @@ def get_tweet (tweet):
      author= data[2]
      text = data[3]
      return (id_tweet,year,month,day,hour,minutes,seconds, author,text)
-   else:
+   except:
      print ' tweet not match'
      return None
 
