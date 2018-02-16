@@ -295,7 +295,7 @@ class TweetsActivity(object):
 
 def get_tweet (tweet):
    data = tweet.split('\t')
-   if len (data) >= 8:
+   try:
      id_tweet = data[0]
      timestamp = data[1]
      date_hour =re.findall(r'(\d\d\d\d)-(\d\d)-(\d\d)\s(\d\d):(\d\d):(\d\d)',timestamp,re.U)
@@ -307,7 +307,7 @@ def get_tweet (tweet):
      followers = data[6]
      following = data [7]
      return (id_tweet,year,month,day,hour,minutes,seconds, author,text,app,id_user,followers,following)
-   else:
+   except:
      print ' tweet not match'
      return None
 
