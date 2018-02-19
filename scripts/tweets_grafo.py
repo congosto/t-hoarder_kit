@@ -113,11 +113,12 @@ class Matrix(dict):
     return
     
 class Relation(object):
-  def __init__(self,  prefix,top_size, relation):
+  def __init__(self,  prefix,top_size, relation,dict_group):
      self.prefix=prefix
      self.dict_authors={}
      self.top_size = top_size
      self.relation= relation
+     self.dict_group=dict_group
      self.dict_users=AvgDict()
      self.dict_in=AvgDict()
      self.dict_out=AvgDict()
@@ -130,6 +131,10 @@ class Relation(object):
      self.top=AvgDict()
      self.top_matrix=Matrix()
      self.most_mentions_matrix=Matrix()
+     if len (dict_group) == 0:
+       self.filter_group = False
+     else:
+       self.filter_group = True
      return
      
   def set_author(self, author,info_author):
@@ -152,17 +157,22 @@ class Relation(object):
       if relation=='mention':     
         for mention in list_mentions:
           relations.append (mention)
-      print relations
     return relations
   
   def set_relation(self, author,text,list_relations,relation):
-     num_mentions=  len (list_relations)
-     self.dict_out.store(author,num_mentions)
-     self.dict_links.store(author,num_mentions)
-     for user in list_relations:
-       self.dict_in.store(user,1)
-       self.dict_links.store(user,1)
-     return     
+    num_mentions=  len (list_relations)
+    if self.filter_group and author not in self.dict_group:
+      pass
+    else:
+      self.dict_out.store(author,num_mentions)
+      self.dict_links.store(author,num_mentions)
+      for user in list_relations:
+        if self.filter_group and user not in self.dict_group:
+          pass
+        else: 
+          self.dict_in.store(user,1)
+          self.dict_links.store(user,1)
+    return     
   
   def get_top_authors (self):
     self.authors_rank_order=sorted([(value,key) for (key,value) in self.dict_tweets.items()],reverse=True)
@@ -205,13 +215,19 @@ class Relation(object):
     return 
 
   def set_relation_nodes(self, author,text,list_relations,relation):
-    num_mentions=  len (list_relations)
-    row=self.dict_rank_links[author]
-    for user in list_relations:
-      col=self.dict_rank_links[user]
-      self.most_mentions_matrix.store (row,col, 1)
-      if (user in self.top) and (author in self.top):
-        num_mentions=self.top_matrix.store (row,col,1)
+    if self.filter_group and author not in self.dict_group:
+       pass
+    else:
+      num_mentions=  len (list_relations)
+      row=self.dict_rank_links[author]
+      for user in list_relations:
+        if self.filter_group and user not in self.dict_group:
+          pass
+        else:
+          col=self.dict_rank_links[user]
+          self.most_mentions_matrix.store (row,col, 1)
+          if (user in self.top) and (author in self.top):
+            num_mentions=self.top_matrix.store (row,col,1)
     return
    
   def  get_format_gdf (self, group):
@@ -274,7 +290,7 @@ class Relation(object):
     return
                  
 def get_number (item):
-  numner=0
+  number=0
   match=(re.search (r"\d+",item))
   if match:
     number = int(match.group(0))
@@ -291,6 +307,7 @@ def main():
   parser = argparse.ArgumentParser(description='This script generates a file in gdf format for visualization in gephi')
   parser.add_argument('file_in', type=str, help='file with tweets list')
   parser.add_argument('--top_size', type=str,default=100, help='top size')
+  parser.add_argument('--group', type=str,default='', help='file with users groups')
   action = parser.add_mutually_exclusive_group(required=True)
   action.add_argument('--RT', action='store_true',help='RT relation')
   action.add_argument('--mention', action='store_true', help='mention relation')
@@ -300,6 +317,17 @@ def main():
   args = parser.parse_args()
   file_in= args.file_in
   top_size=int(args.top_size)
+  file_group=args.group
+  dict_group={}
+  if file_group != '':
+    try:  
+      f_group = codecs.open(file_group, 'rU',encoding='utf-8')
+    except:
+      print 'Can not open file',file_group
+      exit (1)
+    for user in f_group:
+      dict_group [user.strip('\n\r').lower()]=1
+    print dict_group
   if args.RT:
     type_relation='RT'
   if args.mention:
@@ -320,8 +348,10 @@ def main():
   except:
     print 'Can not open file',file_in
     exit (1)
+
+
   print '------> Extracting relation %s\n' % type_relation
-  relation= Relation(prefix,top_size,type_relation)
+  relation= Relation(prefix,top_size,type_relation,dict_group)
   num_line=0
   line_old=''
   for line in f_in:
@@ -338,9 +368,12 @@ def main():
         line_old=''
         author=data[2].lower()
         text=data[3].lower()
-        followers=get_number(data[6])
-        following=get_number(data[7])
-        statuses=get_number(data[8])
+        try:
+          followers=get_number(data[6])
+          following=get_number(data[7])
+          statuses=get_number(data[8])
+        except:
+          print line
         info_author= (author,followers,following,statuses)
         relation.set_author (author,info_author)
         list_relations= relation.get_relation (text,type_relation)
