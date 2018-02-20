@@ -85,7 +85,7 @@ def main():
     path_keys='%s/keys/' % root
     path_scripts='%s/scripts/' % root
     path_store='%s/store/' % root
-  list_suboptions_2= ['profile','followers','following','relations','tweets','h_index']
+  list_suboptions_2= ['profile','followers','following','relations','tweets','role']
   list_suboptions_6= ['RT','reply','mention']
   list_suboptions_7= ['sort','entities','classify','users','spread']
   enviroment=False
@@ -122,7 +122,7 @@ def main():
       print 'What function do you want to run?'
       print '--------------------------------'
       print '1. Get a user token access'
-      print '2. Get users information (profile | followers | following | relations | tweets | h_index)'
+      print '2. Get users information (profile | followers | following | relations | tweets | role)'
       print '3. Make a query on Twitter'
       print '4. Get tweets on real time'
       print '5. Generate the declared relations graph (followers or following or both)'
@@ -146,11 +146,17 @@ def main():
       elif option ==2:
         os.chdir(path_experiment)
         inputfile=get_inputfile ('Enter input file name with the list of users or list of profiles (each user in a line): ',path_experiment)
-        option_rest = get_suboption ('Enter an option (profile | followers | following |relations | tweets| h_index) : ' ,list_suboptions_2)
-        if args.windows:
-          command="python %stweet_rest.py %s %s %s --%s" % (path_scripts,file_app_keys,file_user_keys, inputfile, option_rest) 
+        option_rest = get_suboption ('Enter an option (profile | followers | following |relations | tweets| role) : ' ,list_suboptions_2)
+        if option_rest == 'role':
+          if args.windows:
+            command="python %susers_roles.py %s %s %s" % (path_scripts,file_app_keys,file_user_keys, inputfile) 
+          else:
+            command="python %susers_roles.py '%s' '%s' '%s'" % (path_scripts,file_app_keys,file_user_keys, inputfile)
         else:
-          command="python %stweet_rest.py '%s' '%s' '%s' '--%s'" % (path_scripts,file_app_keys,file_user_keys, inputfile, option_rest) 
+          if args.windows:
+            command="python %stweet_rest.py %s %s %s --%s" % (path_scripts,file_app_keys,file_user_keys, inputfile, option_rest) 
+          else:
+            command="python %stweet_rest.py '%s' '%s' '%s' '--%s'" % (path_scripts,file_app_keys,file_user_keys, inputfile, option_rest) 
         os.system(command)
       elif option ==3:
         os.chdir(path_experiment)
