@@ -357,7 +357,7 @@ def main():
        print '\nGoodbye! '
        exit = True
     except tweepy.TweepError as e:
-       print "Error. Restarting Stream.... %s " % e
+       print "Error %s Restarting Stream.... " % e.api_code
        
        time.sleep(5)
 
