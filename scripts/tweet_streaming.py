@@ -356,8 +356,7 @@ def main():
     except KeyboardInterrupt:
        print '\nGoodbye! '
        exit = True
-    except tweepy.TweepError as err:
-       print(err)
+    except:
        print "Restarting Stream.... " 
        
        time.sleep(5)
