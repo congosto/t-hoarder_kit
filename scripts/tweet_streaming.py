@@ -351,15 +351,19 @@ def main():
   exit=False
   while not exit: # Making permanent streaming with exception handling 
     try:
+       print 'track for %s' % track_list
        stream = tweepy.Stream(auth, StreamWatcherListener(dir_dest,prefix,ext,auth))
-       stream.filter(follow_list, track_list,False,locations_list_int)
+       exit=stream.filter(follow_list, track_list,False,locations_list_int)
     except KeyboardInterrupt:
        print '\nGoodbye! '
        exit = True
-    except:
-       print "Restarting Stream.... " 
-       
-       time.sleep(5)
+    except UnicodeDecodeError:
+       print 'Please, check if the file with the search is encoded in UTF-8' 
+       exit = True
+    except Exception as e:
+       print e
+       exit=True
+    time.sleep(5)
 
 if __name__ == '__main__':
   try:
