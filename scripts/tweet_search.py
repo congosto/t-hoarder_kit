@@ -50,7 +50,7 @@ class oauth_keys(object):
       auth.set_access_token(self.user_keys[0], self.user_keys[1])
       api = tweepy.API(auth)
     except:
-      print 'Error in oauth autentication, user key ', user_keys_file
+      print 'Error in oauth authentication, user key ', user_keys_file
       exit(83)
     return api 
 
@@ -73,9 +73,9 @@ class oauth_keys(object):
         limit=int(rate_limit['limit'])
         remaining_hits=int(rate_limit['remaining'])
         self.dict_ratelimit[(type_resource,method)]= remaining_hits
-        print 'remaing hits',remaining_hits
+        print 'remaining hits',remaining_hits
     except:
-      print 'excepction cheking ratelimit, waiting for 15 minutes ->' + str(datetime.now())
+      print 'exception checking ratelimit, waiting for 15 minutes ->' + str(datetime.now())
       print 'If the same error occurred after 15 minutes, please abort the command and check the app-user access keys'
       time.sleep(wait)
     return
@@ -85,7 +85,7 @@ class oauth_keys(object):
       self.get_rate_limits (api,type_resource,method,wait)
     else:
       self.dict_ratelimit[(type_resource,method)]-= 1
-      print 'remaing hits',self.dict_ratelimit[(type_resource,method)]
+      print 'remaining hits',self.dict_ratelimit[(type_resource,method)]
       if self.dict_ratelimit[(type_resource,method)] <1 :
         self.get_rate_limits (api,type_resource,method,wait)
     return 
