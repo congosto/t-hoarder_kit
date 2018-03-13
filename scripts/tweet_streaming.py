@@ -51,7 +51,7 @@ class oauth_keys(object):
       self.auth.secure = True
       self.auth.set_access_token(user_keys[0], user_keys[1])
     except:
-      print 'Error in oauth autentication, user key ', user_keys_file_num
+      print 'Error in oauth authentication, user key ', user_keys_file_num
       exit(83)
     return
   def get_auth(self):
@@ -274,13 +274,13 @@ class StreamWatcherListener(tweepy.StreamListener):
 
   def on_error(self, status_code):
     #print 'paso por on_error\n'
-    text_error = '---------------->An error has occured! Status code = %s at %s\n' % (status_code,datetime.datetime.now())
+    text_error = '---------------->An error has occurred! Status code = %s at %s\n' % (status_code,datetime.datetime.now())
     self.f_log.write (text_error)
     print text_error
     return True # keep stream alive
 
   def on_exception(self,exception):
-   text_error = '---------------->An excepcion has occured!  = %s at %s\n' % (exception,datetime.datetime.now())
+   text_error = '---------------->An exception has occurred!  = %s at %s\n' % (exception,datetime.datetime.now())
    self.f_log.write (text_error)
    print text_error
    return True # keep stream alive

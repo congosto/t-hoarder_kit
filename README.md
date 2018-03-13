@@ -53,7 +53,7 @@ t_hoarder_kit.bat (Windows) and t_hoarder_kit.sh (linux) provide this menu for a
       1. Get a user token access
       2. Get users information (profile | followers | following | relations | tweets | h_index)
       3. Make a query on Twitter
-      4. Get tweets on real time
+      4. Get tweets in real time
       5. Generate the declared relations graph (followers or following or both)
       6. Generate the dynamic relations graph (RT | reply | mentions)
       7. Processing tweets (sort |entities| classify| users | spread)
