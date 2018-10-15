@@ -21,7 +21,7 @@ echo " "
 echo "----------------------------------------"
 echo "------> Welcome to t-hoarder kit <------"
 echo "----------------------------------------"
-file_t_hoarder_kit=`find $HOME -name t_hoarder_kit.sh >/dev/null`
+file_t_hoarder_kit=`find $HOME -name t_hoarder_kit.sh 2>/dev/null`
 path_t_hoarder_kit=${file_t_hoarder_kit%/*}
 cd $path_t_hoarder_kit
 cd  ..
