@@ -250,7 +250,7 @@ def tweet_search (user_keys,api,file_out,query):
           pass
         try:
           link_tweet= 'https://twitter.com/%s/status/%s' % (statuse.user.screen_name,statuse.id)
-          tweet= '%s\t%s\t@%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %  (statuse.id,
+          tweet= '%s\t%s\t@%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %  (statuse.id,
                   statuse.created_at,
                   statuse.user.screen_name,
                   text,
@@ -276,6 +276,8 @@ def tweet_search (user_keys,api,file_out,query):
                   user_quoted,
                   first_HT,
                   statuse.lang,
+                  statuse.user.created_at,
+                  statuse.user.verified,
                   link_tweet)
           f.write(tweet) 
           n_tweets= n_tweets +1
