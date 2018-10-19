@@ -69,10 +69,10 @@ Using the python scripts from the command line the keys and the results is free 
                      (--profile | --followers | --following | --relations | --connections | --tweets | --h_index)
                      keys_app keys_user file_users
 
-      tweet_search.py [-h] [--query QUERY] [--file_out FILE_OUT]
-                       [--language LANGUAGE]
+      usage: tweet_search.py [-h] [--query QUERY] [--file_out FILE_OUT]
+                       [--format FORMAT]
                        keys_app keys_user
- 
+
       tweet_streaming.py [-h] [--users USERS] [--words WORDS]
                           [--locations LOCATIONS]
                           app_keys user_keys dir_out file_dest
