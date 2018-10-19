@@ -24,6 +24,8 @@ import tweepy
 from datetime import datetime
 import codecs
 import argparse
+import csv
+import unicodecsv as csv
 
 class oauth_keys(object):
   def __init__(self,  app_keys_file,user_keys_file):
@@ -90,7 +92,7 @@ class oauth_keys(object):
         self.get_rate_limits (api,type_resource,method,wait)
     return 
 
-def tweet_search (user_keys,api,file_out,query):
+def tweet_search (user_keys,api,file_out,query,format):
   head=False
   try:
     f=codecs.open(file_out, 'ru',encoding='utf-8',errors='ignore') 
@@ -104,8 +106,17 @@ def tweet_search (user_keys,api,file_out,query):
   recent_tweet=0
   first_tweet=True
   f_log.write(('%s\t') % ('First time\t'))
+  if format == 'text':
+    print 'generate file txt'
+  if format == 'csv':
+    print 'generate file csv'
+    writer = csv.writer(f,delimiter=';')
   if head:
-    f.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tname\tdescription\turl_media\ttype media\tquoted\trelation\treplied_id\tuser replied\tretweeted_id\tuser retweeted\tquoted_id\tuser quoted\tfirst HT\tlang\tlink\n')
+    if format == 'text':
+      f.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tname\tdescription\turl_media\ttype media\tquoted\trelation\treplied_id\tuser replied\tretweeted_id\tuser retweeted\tquoted_id\tuser quoted\tfirst HT\tlang\tcreated_at\tverified\tavatar\t\tlink\n')
+    if format == 'csv':
+      title= ['id tweet','date','author','text','app','id user','followers','following','stauses','location','urls','geolocation','name','description','url_media','type media','quoted','relation','replied_id','user replied','retweeted_id','user retweeted','quoted_id','user quoted','first HT','lang','created at','verified','avatar','link']
+      writer.writerow(title)
   while True:
     try:
       oauth_keys.check_rate_limits (user_keys,api,'search','/search/tweets',900)
@@ -152,18 +163,18 @@ def tweet_search (user_keys,api,file_out,query):
           if statuse.in_reply_to_status_id_str != None:
             relation='reply'
             replied_id= statuse.in_reply_to_status_id_str
-            user_replied=statuse.in_reply_to_screen_name
+            user_replied='@'+statuse.in_reply_to_screen_name
           if hasattr(statuse, 'quoted_status'):
             relation='quote'
             quoted_id=statuse.quoted_status_id_str
-            user_quoted=statuse.quoted_status['user']['screen_name']
+            user_quoted='@'+statuse.quoted_status['user']['screen_name']
           elif hasattr(statuse,'retweeted_status'):
             relation='RT'
             retweeted_id=statuse.retweeted_status.id_str
-            user_retweeted=statuse.retweeted_status.user.screen_name
+            user_retweeted='@'+statuse.retweeted_status.user.screen_name
             if hasattr(statuse.retweeted_status,'quoted_status'):
               quoted_id=statuse.retweeted_status.quoted_status['id_str']
-              user_quoted=statuse.retweeted_status.quoted_status['user']['screen_name']
+              user_quoted='@'+statuse.retweeted_status.quoted_status['user']['screen_name']
         except:
           text_error = '---------------->bad interactions ids, id tweet %s at %s\n' % (id_tweet,time.asctime())
           f_log.write (text_error)
@@ -250,9 +261,10 @@ def tweet_search (user_keys,api,file_out,query):
           pass
         try:
           link_tweet= 'https://twitter.com/%s/status/%s' % (statuse.user.screen_name,statuse.id)
-          tweet= '%s\t%s\t@%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %  (statuse.id,
+          if format == 'text':
+            tweet= '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %  (statuse.id,
                   statuse.created_at,
-                  statuse.user.screen_name,
+                  '@'+statuse.user.screen_name,
                   text,
                   statuse.source,
                   statuse.user.id,
@@ -278,8 +290,42 @@ def tweet_search (user_keys,api,file_out,query):
                   statuse.lang,
                   statuse.user.created_at,
                   statuse.user.verified,
+                  statuse.user.profile_image_url_https,
                   link_tweet)
-          f.write(tweet) 
+            f.write(tweet)
+          if format =='csv':
+            row=[]
+            row.append(statuse.id)
+            row.append(statuse.created_at)
+            row.append('@'+statuse.user.screen_name)
+            row.append(text)
+            row.append(statuse.source)
+            row.append(statuse.user.id)
+            row.append(statuse.user.followers_count)
+            row.append(statuse.user.friends_count)
+            row.append(statuse.user.statuses_count)
+            row.append(location)
+            row.append(url_expanded)
+            row.append(geoloc)
+            row.append(name)
+            row.append(description)
+            row.append(url_media)
+            row.append(type_media)
+            row.append(statuse_quoted_text)
+            row.append(relation)
+            row.append(replied_id)
+            row.append(user_replied)
+            row.append(retweeted_id)
+            row.append(user_retweeted)
+            row.append(quoted_id)
+            row.append(user_quoted)
+            row.append(first_HT)
+            row.append(statuse.lang)
+            row.append(statuse.user.created_at)
+            row.append(statuse.user.verified)
+            row.append(statuse.user.profile_image_url_https)
+            row.append(link_tweet)
+            writer.writerow(row)
           n_tweets= n_tweets +1
         except :
           text_error = '---------------->bad format,  at %s id tweet %s \n' % (time.asctime(),id_tweet)
@@ -300,6 +346,7 @@ def main():
   parser.add_argument('keys_user', type=str, help='file with user keys')
   parser.add_argument('--query', type=str, help='query')
   parser.add_argument('--file_out', type=str,default='tweet_store.txt', help='name file out')
+  parser.add_argument('--format', type=str,default='text', help='name file out')
   
   #obtego los argumentos
   args = parser.parse_args()
@@ -307,6 +354,7 @@ def main():
   user_keys_file= args.keys_user
   query= args.query
   file_out=args.file_out
+  format=args.format
   #print query,file_out
   #autenticación con oAuth     
   user_keys= oauth_keys(app_keys_file,user_keys_file)
@@ -316,7 +364,7 @@ def main():
   if not filename:
     print "bad filename",file_out
     exit (1)
-  tweet_search (user_keys,api,file_out,query)
+  tweet_search (user_keys,api,file_out,query,format)
   exit(0)
 
 if __name__ == '__main__':
