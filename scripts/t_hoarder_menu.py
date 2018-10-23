@@ -139,9 +139,9 @@ def main():
       if option == 1:
         os.chdir(path_keys)
         if args.windows:
-          command="python %stweet_auth.py %s %s" % (path_scripts,app_keys,user)
+          command="python2.7 %stweet_auth.py %s %s" % (path_scripts,app_keys,user)
         else:
-          command="python %stweet_auth.py '%s' '%s'" % (path_scripts,app_keys,user)
+          command="python2.7 %stweet_auth.py '%s' '%s'" % (path_scripts,app_keys,user)
         os.system(command)
       elif option ==2:
         os.chdir(path_experiment)
@@ -149,14 +149,14 @@ def main():
         option_rest = get_suboption ('Enter an option (profile | followers | following |relations | tweets| role) : ' ,list_suboptions_2)
         if option_rest == 'role':
           if args.windows:
-            command="python %susers_roles.py %s %s %s" % (path_scripts,file_app_keys,file_user_keys, inputfile) 
+            command="python2.7 %susers_roles.py %s %s %s" % (path_scripts,file_app_keys,file_user_keys, inputfile) 
           else:
-            command="python %susers_roles.py '%s' '%s' '%s'" % (path_scripts,file_app_keys,file_user_keys, inputfile)
+            command="python2.7 %susers_roles.py '%s' '%s' '%s'" % (path_scripts,file_app_keys,file_user_keys, inputfile)
         else:
           if args.windows:
-            command="python %stweet_rest.py %s %s %s --%s" % (path_scripts,file_app_keys,file_user_keys, inputfile, option_rest) 
+            command="python2.7 %stweet_rest.py %s %s %s --%s" % (path_scripts,file_app_keys,file_user_keys, inputfile, option_rest) 
           else:
-            command="python %stweet_rest.py '%s' '%s' '%s' '--%s'" % (path_scripts,file_app_keys,file_user_keys, inputfile, option_rest) 
+            command="python2.7 %stweet_rest.py '%s' '%s' '%s' '--%s'" % (path_scripts,file_app_keys,file_user_keys, inputfile, option_rest) 
         os.system(command)
       elif option ==3:
         os.chdir(path_experiment)
@@ -164,9 +164,9 @@ def main():
         outputfile= get_outputfile ( 'Enter output file name: ',path_experiment)
         if outputfile != None:
           if args.windows:
-            command="python %stweet_search.py %s %s --query %s' --file_out %s" % (path_scripts,file_app_keys,file_user_keys, query,outputfile) 
+            command="python2.7 %stweet_search.py %s %s --query %s' --file_out %s" % (path_scripts,file_app_keys,file_user_keys, query,outputfile) 
           else:
-            command="python %stweet_search.py '%s' '%s' '--query' '%s' '--file_out' '%s'" % (path_scripts,file_app_keys,file_user_keys, query,outputfile) 
+            command="python2.7 %stweet_search.py '%s' '%s' '--query' '%s' '--file_out' '%s'" % (path_scripts,file_app_keys,file_user_keys, query,outputfile) 
           os.system(command)
         else:
           print 'Option not executed'
@@ -176,9 +176,9 @@ def main():
         outputfile= get_outputfile ('Enter output file name: ', path_experiment)
         if outputfile != None:
           if args.windows:
-            command="python %stweet_streaming.py %s %s %s %s  --words %s" % (path_scripts,file_app_keys,file_user_keys,path_experiment, outputfile,file) 
+            command="python2.7 %stweet_streaming.py %s %s %s %s  --words %s" % (path_scripts,file_app_keys,file_user_keys,path_experiment, outputfile,file) 
           else:
-            command="python %stweet_streaming.py '%s' '%s' '%s' '%s'  '--words' '%s'" % (path_scripts,file_app_keys,file_user_keys,path_experiment, outputfile,file) 
+            command="python2.7 %stweet_streaming.py '%s' '%s' '%s' '%s'  '--words' '%s'" % (path_scripts,file_app_keys,file_user_keys,path_experiment, outputfile,file) 
           os.system(command)
         else:
           print 'Option not executed'
@@ -186,9 +186,9 @@ def main():
         os.chdir(path_experiment)
         inputfile=get_inputfile ('Enter input file name with the users profiles (It is necessary to get before the users profiles): ',path_experiment)
         if args.windows:
-          command="python %stweet_rest.py %s %s %s  --connections" % (path_scripts,file_app_keys,file_user_keys, inputfile) 
+          command="python2.7 %stweet_rest.py %s %s %s  --connections" % (path_scripts,file_app_keys,file_user_keys, inputfile) 
         else:
-          command="python %stweet_rest.py '%s' '%s' '%s'  '--connections' " % (path_scripts,file_app_keys,file_user_keys, inputfile) 
+          command="python2.7 %stweet_rest.py '%s' '%s' '%s'  '--connections' " % (path_scripts,file_app_keys,file_user_keys, inputfile) 
         fast = raw_input ('opción --fast? (y/n:) ')
         if fast == 'y': 
           if args.windows:
@@ -202,9 +202,9 @@ def main():
         relation= get_suboption ('Enter the relationship type (RT | reply | mention): ',list_suboptions_6)
         top= raw_input ('Introduce top size (100-50000): ')
         if args.windows:
-          command="python %stweets_grafo.py %s --%s --top_size %s" % (path_scripts, inputfile, relation,top)
+          command="python2.7 %stweets_grafo.py %s --%s --top_size %s" % (path_scripts, inputfile, relation,top)
         else:
-          command="python %stweets_grafo.py '%s' '--%s' '--top_size' '%s'" % (path_scripts, inputfile, relation,top)
+          command="python2.7 %stweets_grafo.py '%s' '--%s' '--top_size' '%s'" % (path_scripts, inputfile, relation,top)
         os.system(command)
       elif option ==7:
         os.chdir(path_experiment)
@@ -225,32 +225,32 @@ def main():
           inputfile = get_inputfile ('Enter input file name with the tweets (got from a query or in real time): ',path_experiment)
           time_setting = raw_input('Offset GMT time (in Spain 1 in winter, 2 in summer): ')
           if args.windows:
-            command="python %stweets_entity.py %s %s %s --top_size 10 --TZ %s" % (path_scripts, inputfile, path_experiment,path_resources,time_setting)
+            command="python2.7 %stweets_entity.py %s %s %s --top_size 10 --TZ %s" % (path_scripts, inputfile, path_experiment,path_resources,time_setting)
           else:
-            command="python %stweets_entity.py '%s' '%s' '%s' '--top_size' '10' '--TZ' '%s'" % (path_scripts, inputfile, path_experiment,path_resources,time_setting)
+            command="python2.7 %stweets_entity.py '%s' '%s' '%s' '--top_size' '10' '--TZ' '%s'" % (path_scripts, inputfile, path_experiment,path_resources,time_setting)
           os.system(command)
         elif option_processing == 'classify':
           inputfile = get_inputfile ('Enter input file name with the tweets (got from a query or in real time): ',path_experiment)
           topicsfile = get_inputfile ('Enter file name  with topics dictionary: ',path_experiment)
           if args.windows:
-            command="python %stweets_classify.py %s %s %s" % (path_scripts, inputfile, topicsfile, path_experiment)
+            command="python2.7 %stweets_classify.py %s %s %s" % (path_scripts, inputfile, topicsfile, path_experiment)
           else:
-            command="python %stweets_classify.py '%s' '%s' '%s' " % (path_scripts, inputfile, topicsfile, path_experiment)
+            command="python2.7 %stweets_classify.py '%s' '%s' '%s' " % (path_scripts, inputfile, topicsfile, path_experiment)
           os.system(command)
         elif option_processing == 'users':
           inputfile = get_inputfile ('Enter input file name with the tweets (got from a query or in real time): ',path_experiment)
           if args.windows:
-            command="python %susers_types.py %s %s" % (path_scripts, inputfile, path_experiment)
+            command="python2.7 %susers_types.py %s %s" % (path_scripts, inputfile, path_experiment)
           else:
-            command="python %susers_types.py '%s' '%s' " % (path_scripts, inputfile, path_experiment)
+            command="python2.7 %susers_types.py '%s' '%s' " % (path_scripts, inputfile, path_experiment)
           os.system(command)
         elif option_processing == 'spread':
           inputfile = get_inputfile ('Enter input file name with the tweets (got from a query or in real time): ',path_experiment)
           time_setting = raw_input ('Offset GMT time (in Spain 1 in winter, 2 in summer): ')
           if args.windows:
-            command="python %stweets_spread.py %s %s --top_size 1000 --TZ %s" % (path_scripts, inputfile, path_experiment, time_setting)
+            command="python2.7 %stweets_spread.py %s %s --top_size 1000 --TZ %s" % (path_scripts, inputfile, path_experiment, time_setting)
           else:
-            command="python %stweets_spread.py '%s' '%s' '--top_size' '1000' '--TZ' '%s' " % (path_scripts, inputfile, path_experiment, time_setting)
+            command="python2.7 %stweets_spread.py '%s' '%s' '--top_size' '1000' '--TZ' '%s' " % (path_scripts, inputfile, path_experiment, time_setting)
           os.system(command)
       elif option == 8:
          exit='y'
