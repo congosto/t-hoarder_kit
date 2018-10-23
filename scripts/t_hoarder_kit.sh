@@ -45,4 +45,4 @@ then
 else
   echo "t-hoarder_kit is up to date"
 fi
-python ${root}/scripts/t_hoarder_menu.py ${root} --linux
+python2.7 ${root}/scripts/t_hoarder_menu.py ${root} --linux
