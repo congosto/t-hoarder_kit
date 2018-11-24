@@ -229,7 +229,78 @@ class Relation(object):
           if (user in self.top) and (author in self.top):
             num_mentions=self.top_matrix.store (row,col,1)
     return
-   
+  def  get_format_net (self, group):
+    if group =='top':
+      mentions_matrix= self.top_matrix
+      max_nodes= self.top_size
+    else: 
+      mentions_matrix=self.most_mentions_matrix
+      max_nodes= len(self.dict_rank_links)
+    print 'type: ',group,'nodes: ', max_nodes  
+    f_out=  codecs.open(self.prefix+'_'+group+'_'+self.relation+'.net', 'w',encoding='utf-8') 
+    num_nodes=0
+    # print nodes
+    f_out.write ('*Vertices %s\n' % (max_nodes))
+    mentions_order=sorted([(value,key) for (key,value) in self.dict_rank_links.items()])
+    num_nodes=0
+    for (value,user) in mentions_order:
+      if num_nodes >= max_nodes:
+        break
+      if user in self.dict_in:
+        connections_in= self.dict_in[user]
+      else:
+        connections_in= 0
+      if user in self.dict_out:
+        connections_out= self.dict_out[user]
+      else:
+        connections_out= 0
+      connections= connections_in + connections_out
+      if connections > 0:  
+        if  connections < 5:
+          size=0.5
+        elif connections < 10:
+          size=0.75
+        elif connections < 20:
+          size=1.0
+        elif connections < 50:
+          size=1.5
+        else:
+          size=2 
+        user_index= self.dict_rank_links[user]
+        num_nodes= num_nodes +1  
+        if num_nodes % 100000 == 0:
+          print '%s nodes generated' % (num_nodes)  
+        if user in self.top_mentions:     
+          f_out.write (' %s "%s" ellipse x_fact %.4f y_fact %.4f ic Red bc Black lc Red fos 16 font Verdana \n' % (user_index+1, user, size,size))
+        else:
+          f_out.write ('%s "%s" ellipse x_fact %.4f y_fact %.4f ic Green bc Black lc Green fos 16 font Verdana \n' % (user_index+1, user, size,size))
+  # print arcs 
+    f_out.write ('*Arcs\n')
+    num_edges=0
+    mentions_matrix_order=sorted([(key,value) for (key,value) in mentions_matrix.items()])
+    for (key,value) in mentions_matrix_order:
+      #print value,key
+      (i,j) = key
+      num_mentions= mentions_matrix.getitem(i,j)
+      if num_mentions >0:
+        if num_mentions < 10:
+          weight=1
+        elif num_mentions < 25:
+          weight=2
+        elif num_mentions < 50:
+          weight=3
+        elif num_mentions < 100:
+          weight=4
+        else:
+          weight=5
+        num_edges= num_edges +1  
+        if num_edges % 100000 == 0:
+          print '%s edges generated' % (num_edges)  
+        f_out.write ('%s %s %s c Gray \n' % (i+1,j+1,weight))
+    f_out.write ('*Edges\n')
+    f_out.close()
+    return
+ 
   def  get_format_gdf (self, group):
     if group =='top':
       mentions_matrix= self.top_matrix
@@ -413,6 +484,8 @@ def main():
   print 'format gdf'
   relation.get_format_gdf ('top')
   relation.get_format_gdf ('all')
+  relation.get_format_net ('top')
+  relation.get_format_net ('all')
   exit(0)
 
 if __name__ == '__main__':
