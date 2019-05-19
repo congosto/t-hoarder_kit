@@ -131,6 +131,8 @@ class Relation(object):
      self.top=AvgDict()
      self.top_matrix=Matrix()
      self.most_mentions_matrix=Matrix()
+     self.top_matrix_attr=Matrix()
+     self.most_mentions_matrix_attr=Matrix()
      if len (dict_group) == 0:
        self.filter_group = False
      else:
@@ -214,7 +216,7 @@ class Relation(object):
       self.top[user] = self.dict_links[user]
     return 
 
-  def set_relation_nodes(self, author,text,list_relations,relation):
+  def set_relation_nodes(self, author,text,list_relations,relation,app,ht,lang):
     if self.filter_group and author not in self.dict_group:
        pass
     else:
@@ -226,8 +228,10 @@ class Relation(object):
         else:
           col=self.dict_rank_links[user]
           self.most_mentions_matrix.store (row,col, 1)
+          self.most_mentions_matrix_attr.setitem (row,col, (app,ht,lang))
           if (user in self.top) and (author in self.top):
             num_mentions=self.top_matrix.store (row,col,1)
+            num_mentions=self.top_matrix_attr.setitem (row,col,(app,ht,lang))
     return
   def  get_format_net (self, group):
     if group =='top':
@@ -305,9 +309,11 @@ class Relation(object):
     if group =='top':
       mentions_matrix= self.top_matrix
       max_nodes= self.top_size
+      mentions_matrix_attr=self.top_matrix_attr
     else: 
       mentions_matrix=self.most_mentions_matrix
       max_nodes= len(self.dict_rank_links)
+      mentions_matrix_attr=self.most_mentions_matrix_attr
     print 'type: ',group,'nodes: ', max_nodes  
     f_out=  codecs.open(self.prefix+'_'+group+'_'+self.relation+'.gdf', 'w',encoding='utf-8') 
     print 'generating gdf file'
@@ -345,18 +351,25 @@ class Relation(object):
         #print ('node %s %s conections %s' % (num_nodes,user,connections))  
         f_out.write ('%s, %s, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f,%s,%s,%s,%s,%s\n' % (user_index, user, connections,connections_in,connections_out,log_followers,log_following,log_statuses,app,location,ht,lang,join_date))
   # print arcs 
-    f_out.write ('edgedef>node1 VARCHAR,node2 VARCHAR, directed BOOLEAN, weight VARCHAR;\n')
+    f_out.write ('edgedef>node1 VARCHAR,node2 VARCHAR, directed BOOLEAN, weight VARCHAR, app VARCHAR, HT VARCHAR, lang VARCHAR,join_date VARCHAR\n')
     num_edges=0
     mentions_matrix_order=sorted([(key,value) for (key,value) in mentions_matrix.items()])
     for (key,value) in mentions_matrix_order:
       #print value,key
       (i,j) = key
       num_mentions= mentions_matrix.getitem(i,j)
+      user=self.dict_rank_links_index[i]
+      if user in self.dict_authors:
+        (followers,following,statuses,app,location,ht,lang,join_date)=self.dict_authors[user]
+      else:
+        join_date=0
+        location=''
+      (app,ht,lang)=mentions_matrix_attr.getitem(i,j)
       if num_mentions >0:
         num_edges= num_edges +1  
         if num_edges % 100000 == 0:
           print '%s nodes generated' % (num_edges)   
-        f_out.write ('%s,%s,true,%.0f\n' % (i,j,num_mentions))
+        f_out.write ('%s,%s,true,%.0f,%s,%s,%s,%s\n' % (i,j,num_mentions,app,ht,lang,join_date))
     f_out.close()
     return
                  
@@ -490,7 +503,7 @@ def main():
         info_author=(followers,following,statuses,app,location,ht,lang,join_date)
         list_relations= relation.get_relation (text,type_relation)
         if len(list_relations) > 0:
-          relation.set_relation_nodes (author,text, list_relations,type_relation)
+          relation.set_relation_nodes (author,text, list_relations,type_relation,app,ht,lang)
       else:
         line_old=line
         print 'truncated tweet',line
