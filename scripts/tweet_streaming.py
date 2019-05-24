@@ -231,10 +231,10 @@ class StreamWatcherListener(tweepy.StreamListener):
               name=re.sub('[\r\n\t]+', ' ',statuse['user']['name'],re.UNICODE)
         except:
           text_error = '---------------->bad user name,  at %s id tweet %s \n' % (datetime.datetime.now(),id_tweet)
-          self.f_log.write (text_error) 
+          self.f_log.write (text_error)
       try:
         link_tweet= 'https://twitter.com/%s/status/%s' % (statuse['user']['screen_name'],id_tweet)
-        tweet='%s\t%s\t@%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %  (id_tweet,
+        tweet='%s\t%s\t@%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %  (id_tweet,
                 date,
                 statuse['user']['screen_name'],
                 text,
@@ -260,6 +260,9 @@ class StreamWatcherListener(tweepy.StreamListener):
                 user_quoted,
                 first_HT,
                 statuse['lang'],
+                parse_datetime(statuse['user']['created_at']),
+                statuse['user']['verified'],
+                statuse['user']['profile_image_url_https'],
                 link_tweet)
         self.f_out.write(tweet) 
         print '---->collected tweet', id_tweet
@@ -299,7 +302,7 @@ def get_list (file_list):
     print "file doesn't exist:", file_list
     exit(1)
   list_plana= f_list.read()
-  list_datos= list_plana[:-1].split (',')
+  list_datos= list_plana.strip('\r\n').split (',')
   return list_datos
 
 def main():
