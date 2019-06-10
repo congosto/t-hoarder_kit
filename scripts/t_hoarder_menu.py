@@ -88,6 +88,7 @@ def main():
   list_suboptions_2= ['profile','followers','following','relations','tweets','role']
   list_suboptions_6= ['RT','reply','mention']
   list_suboptions_7= ['sort','entities','classify','users','spread']
+  list_suboptions_8= ['sort','user-cards','add-communities','spread-by-communities','get_photos-community']
   enviroment=False
   option=8
   exit='n'
@@ -127,8 +128,9 @@ def main():
       print '4. Get tweets on real time'
       print '5. Generate the declared relations graph (followers or following or both)'
       print '6. Generate the dynamic relations graph (RT | reply | mentions)'
-      print '7. Processing tweets (sort |entities| classify| users | spread)'
-      print '8. Exit'
+      print '7. Processing tweets (entities| classify| users | spread)'
+      print '8. utils (sort| user-cards| add-communities |spread-by-communities| get_photos-community)'
+      print '9. Exit'
       print ' '
       while True:
         try:
@@ -209,19 +211,7 @@ def main():
       elif option ==7:
         os.chdir(path_experiment)
         option_processing= get_suboption ('Enter option (sort |entities| classify| users | spread): ',list_suboptions_7)
-        if option_processing == 'sort':
-          inputfile = get_inputfile ('Enter input file name with the tweets (got from a query or in real time): ',path_experiment)
-          if args.linux:
-            filename, file_extension = os.path.splitext(inputfile)
-            if args.windows:
-              command='(head -n 1 %s && tail -n +2 %s | sort -u) > %s_ok%s' % (inputfile,inputfile,filename,file_extension)
-            else:
-              command='(head -n 1 %s && tail -n +2 %s | sort -u) > %s_ok%s' % (inputfile,inputfile,filename,file_extension)
-            os.system(command)
-            print 'file sorted in  %s_ok%s)' % (filename,file_extension)
-          if args.windows:
-            print 'in construccion'
-        elif option_processing == 'entities':
+        if option_processing == 'entities':
           inputfile = get_inputfile ('Enter input file name with the tweets (got from a query or in real time): ',path_experiment)
           time_setting = raw_input('Offset GMT time (in Spain 1 in winter, 2 in summer): ')
           if args.windows:
@@ -252,13 +242,62 @@ def main():
           else:
             command="python2.7 %stweets_spread.py '%s' '%s' '--top_size' '1000' '--TZ' '%s' " % (path_scripts, inputfile, path_experiment, time_setting)
           os.system(command)
-      elif option == 8:
+      elif option ==8:
+        os.chdir(path_experiment)
+        option_processing= get_suboption ('Enter option (sort |user-cards| add-communities| spread-by-communities| get_photos-community): ',list_suboptions_8)
+        if option_processing == 'sort':
+          inputfile = get_inputfile ('Enter input file name with the tweets (got from a query or in real time): ',path_experiment)
+          if args.linux:
+            filename, file_extension = os.path.splitext(inputfile)
+            if args.windows:
+              command='(head -n 1 %s && tail -n +2 %s | sort -u) > %s_ok%s' % (inputfile,inputfile,filename,file_extension)
+            else:
+              command='(head -n 1 %s && tail -n +2 %s | sort -u) > %s_ok%s' % (inputfile,inputfile,filename,file_extension)
+            os.system(command)
+            print 'file sorted in  %s_ok%s)' % (filename,file_extension)
+          if args.windows:
+            print 'in construccion'
+        elif option_processing == 'user-cards':
+          inputfile = get_inputfile ('Enter input file name with  users list (one per line): ',path_experiment)
+          if args.windows:
+            command="python2.7 %suser_card.py %s %s %s" % (path_scripts,file_app_keys,file_user_keys, inputfile) 
+          else:
+            command="python2.7 %suser_card.py '%s' '%s' '%s' " % (path_scripts,file_app_keys,file_user_keys, inputfile) 
+          os.system(command)
+        elif option_processing == 'add-communities':
+          inputfile = get_inputfile ('Enter a input file name with  tweets): ',path_experiment)
+          communityfile = get_inputfile ('Enter a community file export from gephi : ',path_experiment)
+          user_col = raw_input ('Enter a column number of user in  community file : ')
+          community_col = raw_input ('Enter a colum number of community in  community file: ')
+          if args.windows:
+            command="python2.7 %stweets_add_communities.py  %s %s %s %s " % (path_scripts,inputfile,communitiefile, user_col,community_col) 
+          else:
+            command="python2.7 %stweets_add_communities.py  '%s' '%s' '%s' '%s' " % (path_scripts,inputfile,communityfile, user_col,community_col)
+            print command
+          os.system(command)
+        elif option_processing == 'spread-by-communities':
+          inputfile = get_inputfile ('Enter a input file name with  tweets with communities): ',path_experiment)
+          communityfile = get_inputfile ('Enter a file with nunmber-communities name: ',path_experiment)
+          if args.windows:
+            command="python2.7 %stweets_spread_by_community.py  %s  --community %s " % (path_scripts,inputfile,communitiefile) 
+          else:
+            command="python2.7 %stweets_spread_by_community.py  '%s' --community '%s' " % (path_scripts,inputfile,communityfile)
+            print command
+          os.system(command)
+        elif option_processing == 'get_photos-community':
+          inputfile = get_inputfile ('Enter a spread file of a community): ',path_experiment)
+          if args.windows:
+            command="python2.7 %stweet_get_fotos.py  %s %s %s " % (path_scripts,inputfile,file_app_keys,file_user_keys,inputfile) 
+          else:
+            command="python2.7 %stweet_get_fotos.py  '%s' '%s' '%s'  " % (path_scripts, file_app_keys,file_user_keys,inputfile)
+            print command
+          os.system(command)
+      elif option == 9:
          exit='y'
     except KeyboardInterrupt:
       pass
     finally:
       pass
-
 if __name__ == '__main__':
    try:
      main()
