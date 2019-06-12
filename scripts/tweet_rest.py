@@ -25,6 +25,7 @@ from datetime import datetime
 import codecs
 import math
 import argparse
+import logging
 
 class oauth_keys(object):
   def __init__(self,  app_keys_file,user_keys_file):
@@ -710,6 +711,7 @@ def main():
 
 if __name__ == '__main__':
   try:
+    logging.basicConfig()
     main()
   except KeyboardInterrupt:
     print '\nGoodbye! '
