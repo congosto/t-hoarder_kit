@@ -384,7 +384,7 @@ def get_tweet (data):
   author=data[2].lower()
   text=data[3].lower()
   try:
-    app=data[4]
+    app=data[4].replace(',',' ')
     followers=get_number(data[6])
     following=get_number(data[7])
     statuses=get_number(data[8])
