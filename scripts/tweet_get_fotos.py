@@ -95,7 +95,7 @@ class oauth_keys(object):
         self.get_rate_limits (api,type_resource,method,wait)
     return 
 
-def put_html (list_tweets_by_day,dict_photos,f_out,top):
+def put_html (list_tweets_by_day,dict_photos,dir_out,f_out,top):
     f_out.write ('<html>\n')
     f_out.write ('<head>\n')
     f_out.write ('<meta charset="UTF-8">\n')
@@ -112,7 +112,7 @@ def put_html (list_tweets_by_day,dict_photos,f_out,top):
        head =False
       f_out.write ('<tr >\n<td width="50%%"><strong>fecha:</strong> %s<br/><strong>author:</strong> %s<br/><strong>texto:</strong>%s<br/><strong>RTs:</strong> %s<br><strong>id_tweet:</strong> %s</br><strong>permanent_link:</strong> <a href="%s">%s</a><br/></td>\n' % (date,author,text,RTs,id_tweet,permanent_link, permanent_link))
       if meta_img != '':
-        f_out.write ('<td with="50%%"><img src=%s width=300></td>\n</tr>\n' % (meta_img))
+        f_out.write ('<td with="50%%"><img src=%s/photos/%s width=300></td>\n</tr>\n' % (dir_out,meta_img))
       else:
         f_out.write ('<td with="50%%"> Sin imagen</td>\n</tr>\n')
       f_out.write ('<tr><td><hr/></td><td><hr/></td</tr>\n')
@@ -213,7 +213,7 @@ def get_photos_by_id_tweet(user_keys,api,file_in,dir_out,top):
       if url_media != None:
         img=os.path.basename(url_media)
         meta_img='%s-%05d-%s-%s' % (day,int(RTs),author,img)
-        command= 'ls %s/%s' % (dir_out,meta_img)
+        command= 'ls %s/photos/%s' % (dir_out,meta_img)
         print command
         result= os.system(command)
         if result == 0:
@@ -232,7 +232,7 @@ def get_photos_by_id_tweet(user_keys,api,file_in,dir_out,top):
             break
           if img !=None:
             meta_img='%s-%05d-%s-%s' % (day,int(RTs),author,img)
-            command='mv %s/%s %s/%s' % (dir_out,img,dir_out,meta_img)
+            command='mv %s/%s %s/photos/%s' % (dir_out,img,dir_out,meta_img)
             status=os.system(command)
             count=0
             while status != 0:
@@ -249,7 +249,7 @@ def get_photos_by_id_tweet(user_keys,api,file_in,dir_out,top):
     else:
       meta_img= dict_photos[id_tweet]
     list_tweets_by_day.append (( timestamp,author,text,RTs,id_tweet,permanent_link,meta_img))
-  put_html (list_tweets_by_day,dict_photos,f_out,len(list_tweets_by_day))
+  put_html (list_tweets_by_day,dict_photos,dir_out,f_out,len(list_tweets_by_day))
   return
 
 def main():
@@ -272,6 +272,8 @@ def main():
   dir_out=args.dir_out
   file_in= args.file_in
   top= int(args.top)
+  command='mkdir %s/photos' % (dir_out)
+  status=os.system(command)
   #print query,file_out
   #autenticación con oAuth     
   user_keys= oauth_keys(app_keys_file,user_keys_file)
