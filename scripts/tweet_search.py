@@ -114,7 +114,7 @@ def tweet_search (user_keys,api,file_out,query,format):
     writer = csv.writer(f,delimiter=';')
   if head:
     if format == 'text':
-      f.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tname\tdescription\turl_media\ttype media\tquoted\trelation\treplied_id\tuser replied\tretweeted_id\tuser retweeted\tquoted_id\tuser quoted\tfirst HT\tlang\tcreated_at\tverified\tavatar\t\tlink\n')
+      f.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tname\tdescription\turl_media\ttype media\tquoted\trelation\treplied_id\tuser replied\tretweeted_id\tuser retweeted\tquoted_id\tuser quoted\tfirst HT\tlang\tcreated_at\tverified\tavatar\tlink\n')
     if format == 'csv':
       title= ['id tweet','date','author','text','app','id user','followers','following','stauses','location','urls','geolocation','name','description','url_media','type media','quoted','relation','replied_id','user replied','retweeted_id','user retweeted','quoted_id','user quoted','first HT','lang','created at','verified','avatar','link']
       writer.writerow(title)
