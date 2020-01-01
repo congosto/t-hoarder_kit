@@ -324,7 +324,7 @@ class Relation(object):
     log_statuses=0
     # print nodes
     num_nodes=0
-    f_out.write ('nodedef>name VARCHAR,label VARCHAR,Links VARCHAR,Links_in VARCHAR,links_out VARCHAR,followers VARCHAR,following VARCHAR,statuses VARCHAR,app VARCHAR,location VARCHAR, HT VARCHAR, lang VARCHAR,join_date VARCHAR\n')
+    f_out.write ('nodedef>name VARCHAR,label VARCHAR,Links INT,Links_in INT,links_out INT,followers INT,following INT,statuses VARCHAR,app VARCHAR,location VARCHAR, HT VARCHAR, lang VARCHAR,join_date VARCHAR\n')
     links_order=sorted([(value,key) for (key,value) in self.dict_rank_links.items()])
     num_nodes=0
     for (value,user) in links_order:
@@ -351,7 +351,7 @@ class Relation(object):
         #print ('node %s %s conections %s' % (num_nodes,user,connections))  
         f_out.write ('%s, %s, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f,%s,%s,%s,%s,%s\n' % (user_index, user, connections,connections_in,connections_out,log_followers,log_following,log_statuses,app,location,ht,lang,join_date))
   # print arcs 
-    f_out.write ('edgedef>node1 VARCHAR,node2 VARCHAR, directed BOOLEAN, weight VARCHAR, app VARCHAR, HT VARCHAR, lang VARCHAR,join_date VARCHAR\n')
+    f_out.write ('edgedef>node1 VARCHAR,node2 VARCHAR, directed BOOLEAN, weight INT, app VARCHAR, HT VARCHAR, lang VARCHAR,join_date VARCHAR\n')
     num_edges=0
     mentions_matrix_order=sorted([(key,value) for (key,value) in mentions_matrix.items()])
     for (key,value) in mentions_matrix_order:
@@ -391,12 +391,7 @@ def get_tweet (data):
     location=data[9].replace(',',' ')
     ht=data[24]
     lang=data[25]
-    join_date=data[26].split(' ')
-    if len(join_date) >5:
-      join_date=join_date[5]
-    else:
-      join_date=data[26].split('-')
-      join_date= join_date[0]
+    join_date=data[26]
   except:
     print line
   return ((author,text,followers,following,statuses,app,location,ht,lang,join_date))
