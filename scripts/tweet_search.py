@@ -177,19 +177,23 @@ def tweet_search (user_keys,api,file_out,query,format):
               quoted_id=statuse.retweeted_status.quoted_status['id_str']
               user_quoted='@'+statuse.retweeted_status.quoted_status['user']['screen_name']
         except:
-          text_error = '---------------->bad interactions ids, id tweet %s at %s\n' % (id_tweet,time.asctime())
+          text_error = '---------------->Warning (tweet not discarded): bad interactions ids, id tweet %s at %s \n' % (id_tweet,time.asctime())
           f_log.write (text_error)
 #get quote
-        try:
-          if hasattr(statuse, 'quoted_status'):
+        if hasattr(statuse, 'quoted_status'):
+          try:
             statuse_quoted_text=statuse.quoted_status['full_text']
             statuse_quoted_text=re.sub('[\r\n\t]+', ' ',statuse_quoted_text)
-          elif hasattr(statuse, 'retweeted_status'):
+          except:
+            text_error = '---------------->Warning (tweet not discarded): bad quoted, id tweet %s at %s\n' % (id_tweet,time.asctime())
+            f_log.write (text_error)
+        elif hasattr(statuse, 'retweeted_status'):
+          try:
             if hasattr(statuse.retweeted_status,'quoted_status'):
               statuse_quoted_text=statuse.retweeted_status.quoted_status['full_text']
               statuse_quoted_text=re.sub('[\r\n\t]+', ' ',statuse_quoted_text)
-        except:
-          text_error = '---------------->bad quoted, id tweet %s at %s\n' % (id_tweet,time.asctime())
+          except:
+            text_error = '---------------->Warning (tweet not discarded): bad quoted into a RT, id tweet %s at %s\n' % (id_tweet,time.asctime())
           f_log.write (text_error)
 #get geolocation
         if hasattr(statuse,'coordinates'):
@@ -201,7 +205,7 @@ def tweet_search (user_keys,api,file_out,query,format):
                 print list_geoloc
                 geoloc= '%s, %s' % (list_geoloc[0],list_geoloc[1])
             except:
-              text_error = '---------------->bad quoted, id tweet %s at %s\n' % (id_tweet,time.asctime())
+              text_error = '---------------->Warning (tweet not discarded): bad coordinates, id tweet %s at %s\n' % (id_tweet,time.asctime())
               f_log.write (text_error)
 #get entities
         if hasattr (statuse,'entities'):
@@ -215,7 +219,7 @@ def tweet_search (user_keys,api,file_out,query,format):
             if len (urls) >0:
               url_expanded= urls[0]['expanded_url']
           except:
-            text_error = '---------------->bad entity urls, id tweet %s at %s\n' % (id_tweet,time.asctime())
+            text_error = '---------------->Warning (tweet not discarded):  bad entity urls, id tweet %s at %s\n' % (id_tweet,time.asctime())
             self.f_log.write (text_error)
           try:
             if 'media' in entities:
@@ -224,7 +228,7 @@ def tweet_search (user_keys,api,file_out,query,format):
                 url_media= list_media[0]['media_url']
                 type_media=list_media[0]['type']
           except:
-            text_error = '---------------->bad entity Media, id tweet %s at %s\n' % (id_tweet,time.asctime())
+            text_error = '---------------->Warning (tweet not discarded): bad entity Media, id tweet %s at %s\n' % (id_tweet,time.asctime())
             f_log.write (text_error)
           try:
             if 'hashtags' in entities:
@@ -232,22 +236,25 @@ def tweet_search (user_keys,api,file_out,query,format):
               if len (HTs) >0:
                 first_HT=HTs[0]['text']
           except:
-            text_error = '---------------->bad entity HT, id tweet %s at %s\n' % (id_tweet,time.asctime())
+            text_error = '---------------->Warning (tweet not discarded): bad entity HT, id tweet %s at %s\n' % (id_tweet,time.asctime())
             f_log.write (text_error)
 #get text
-        try:
-          if hasattr (statuse,'full_text'):
+        if hasattr (statuse,'full_text'):
+          try:
             text=re.sub('[\r\n\t]+', ' ',statuse.full_text)
-          if hasattr(statuse,'retweeted_status'):
-            Is_RT=True
-            if hasattr (statuse.retweeted_status,'full_text'):
+          except:
+            text_error = '---------------->Warning (tweet not discarded): bad tweet text,  at %s id tweet %s \n' % (time.asctime(),id_tweet)
+            f_log.write (text_error)
+        if hasattr(statuse,'retweeted_status'):
+          if hasattr (statuse.retweeted_status,'full_text'):
+            try:
               RT_expand=re.sub('[\r\n\t]+', ' ',statuse.retweeted_status.full_text)
               RT=re.match(r'(^RT @\w+: )',text)
               if RT:
                text= RT.group(1) + RT_expand
-        except:
-          text_error = '---------------->bad tweet text,  at %s id tweet %s \n' % (time.asctime(),id_tweet)
-          f_log.write (text_error)
+            except:
+              text_error = '---------------->Warning (tweet not discarded): bad tweet text into a RT,  at %s id tweet %s \n' % (time.asctime(),id_tweet)
+              f_log.write (text_error)
         try:
             location=re.sub('[\r\n\t]+', ' ',statuse.user.location,re.UNICODE)
         except:
