@@ -186,7 +186,6 @@ def tweet_search (user_keys,api,file_out,query,format):
             statuse_quoted_text=re.sub('[\r\n\t]+', ' ',statuse_quoted_text)
           except:
             text_error = '---------------->Warning (tweet not discarded): bad quoted, id tweet %s at %s\n' % (id_tweet,time.asctime())
-            print text_error
             f_log.write (text_error)
         elif hasattr(statuse, 'retweeted_status'):
           try:
@@ -194,7 +193,6 @@ def tweet_search (user_keys,api,file_out,query,format):
               statuse_quoted_text=statuse.retweeted_status.quoted_status['full_text']
               statuse_quoted_text=re.sub('[\r\n\t]+', ' ',statuse_quoted_text)
           except:
-            print text_error
             text_error = '---------------->Warning (tweet not discarded): bad quoted into a RT, id tweet %s at %s\n' % (id_tweet,time.asctime())
             f_log.write (text_error)
 #get geolocation
