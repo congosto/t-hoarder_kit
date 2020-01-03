@@ -391,7 +391,8 @@ def get_tweet (data):
     location=data[9].replace(',',' ')
     ht=data[24]
     lang=data[25]
-    join_date=data[26]
+    join_date_hour=data[26].split(' ')
+    join_date=join_date_hour[0]
   except:
     print line
   return ((author,text,followers,following,statuses,app,location,ht,lang,join_date))
