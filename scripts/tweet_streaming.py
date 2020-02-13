@@ -26,8 +26,7 @@ from getpass import getpass
 from textwrap import TextWrapper
 import codecs
 import argparse
-from tweepy.utils import import_simplejson
-json = import_simplejson()
+import simplejson
 from tweepy.utils import parse_datetime, parse_html_value, parse_a_href
 
 class oauth_keys(object):
@@ -80,7 +79,7 @@ class StreamWatcherListener(tweepy.StreamListener):
       self.f_out.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tname\tdescription\turl_media\ttype media\tquoted\trelation\treplied_id\tuser replied\tretweeted_id\tuser retweeted\tquoted_id\tuser quoted\tfirst HT\tlang\tlink\n')
 
   def on_data(self, data):
-    statuse = json.loads(data)
+    statuse = simplejson.loads(data)
     if 'delete' in statuse:
       return True # keep stream alive
     if 'id' in statuse:
@@ -110,15 +109,15 @@ class StreamWatcherListener(tweepy.StreamListener):
         if statuse['in_reply_to_status_id_str'] != None:
           relation='reply'
           replied_id= statuse['in_reply_to_status_id_str']
-          user_replied=statuse['in_reply_to_screen_name']
+          user_replied='@'+statuse['in_reply_to_screen_name']
         if 'quoted_status' in statuse:
           relation='quote'
           quoted_id=statuse['quoted_status_id_str']
-          user_quoted=statuse['quoted_status']['user']['screen_name']
+          user_quoted='@'+statuse['quoted_status']['user']['screen_name']
         elif 'retweeted_status' in statuse:
           relation='RT'
           retweeted_id=statuse['retweeted_status']['id_str']
-          user_retweeted=statuse['retweeted_status']['user']['screen_name']
+          user_retweeted='@'+statuse['retweeted_status']['user']['screen_name']
           if 'quoted_status' in statuse['retweeted_status']:
             quoted_id=statuse['retweeted_status']['quoted_status']['id_str']
             user_quoted=statuse['retweeted_status']['quoted_status']['user']['screen_name']
