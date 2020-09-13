@@ -12,7 +12,14 @@ Dependencies: [tweepy](https://github.com/tweepy/tweepy)
 
 Python 2.7.12 or newer. Python 3.x not supported
 
-An alternative is to use this [Dropbox Virtual Machine](https://www.dropbox.com/s/j0p26bmgmct3vll/como_instalar_VM_taller_datos_twitter.pdf?dl=0) that takes all software installed (The VM has a size almost 4 GB so it is recommended to install it from a high speed connection). 
+---
+
+Could be used as an alternative this [Dropbox Virtual Machine](https://www.dropbox.com/s/j0p26bmgmct3vll/como_instalar_VM_taller_datos_twitter.pdf?dl=0) with all software installed (The VM has a size almost 4 GB so it is recommended to install it from a high speed connection)
+
+If VM is used, reading this use case is recommended [How to use t-hoarder_kit with the Virtual Machine ](http://periodisme-dades.recursos.uoc.edu/es/6-1-4-preguntas-a-resolver/) Includes how to analyze network relationships with gephi
+
+---
+
 ## Data enviroment
 
 T-hoarder kit works on the following directory structure
