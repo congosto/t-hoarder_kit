@@ -166,7 +166,7 @@ def main():
         outputfile= get_outputfile ( 'Enter output file name: ',path_experiment)
         if outputfile != None:
           if args.windows:
-            command="python2.7 %stweet_search.py %s %s --query %s' --file_out %s" % (path_scripts,file_app_keys,file_user_keys, query,outputfile) 
+            command="python2.7 %stweet_search.py %s %s --query %s --file_out %s" % (path_scripts,file_app_keys,file_user_keys, query,outputfile) 
           else:
             command="python2.7 %stweet_search.py '%s' '%s' '--query' '%s' '--file_out' '%s'" % (path_scripts,file_app_keys,file_user_keys, query,outputfile) 
           os.system(command)
