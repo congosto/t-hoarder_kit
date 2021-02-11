@@ -361,10 +361,10 @@ def main():
        exit = True
     except UnicodeDecodeError:
        print 'Please, check if the file with the search is encoded in UTF-8' 
-       exit = True
+       pass
     except Exception as e:
        print e
-       exit=True
+       pass
     time.sleep(5)
 
 if __name__ == '__main__':
