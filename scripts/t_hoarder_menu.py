@@ -56,6 +56,23 @@ def get_outputfile (query,path):
       return file
   return file
 
+def get_outputfile_w (query,path):
+
+  file =raw_input (query)
+  print '%s%s' % (path,file)
+  if os.path.isfile('%s%s' % (path,file)):
+    while True:
+      answer= raw_input ('>>>>%s/%s file exists and it will be rewritten, do you want to continue (y/n)?' % (path,file))
+      if answer == 'y':
+        return file
+      elif answer == 'n':
+        return None
+      else:
+        pass
+    else:
+      return file
+  return file
+
 def get_suboption (query,list_suboptions):
   while True:
     suboption =raw_input (query)
@@ -87,8 +104,8 @@ def main():
     path_store='%s/store/' % root
   list_suboptions_2= ['profile','followers','following','relations','tweets','role']
   list_suboptions_6= ['RT','reply','mention']
-  list_suboptions_7= ['sort','entities','classify','users','spread']
-  list_suboptions_8= ['sort','user-cards','add-communities','spread-by-communities','get_photos-community']
+  list_suboptions_7= ['entities','classify','users','spread']
+  list_suboptions_8= ['sort','remove-duplicate-tweets','user-cards', 'add-communities','spread-by-communities','get_photos-community']
   enviroment=False
   option=8
   exit='n'
@@ -129,7 +146,7 @@ def main():
       print '5. Generate the declared relations graph (followers or following or both)'
       print '6. Generate the dynamic relations graph (RT | reply | mentions)'
       print '7. Processing tweets (entities| classify| users | spread)'
-      print '8. utils (sort| user-cards| add-communities |spread-by-communities| get_photos-community)'
+      print '8. utils (sort| remove-duplicate-tweets| user-cards| add-communities |spread-by-communities| get_photos-community)'
       print '9. Exit'
       print ' '
       while True:
@@ -244,7 +261,7 @@ def main():
           os.system(command)
       elif option ==8:
         os.chdir(path_experiment)
-        option_processing= get_suboption ('Enter option (sort |user-cards| add-communities| spread-by-communities| get_photos-community): ',list_suboptions_8)
+        option_processing= get_suboption ('Enter option (sort | remove-duplicate-tweets| user-cards| add-communities| spread-by-communities| get_photos-community): ',list_suboptions_8)
         if option_processing == 'sort':
           inputfile = get_inputfile ('Enter input file name with the tweets (got from a query or in real time): ',path_experiment)
           if args.linux:
@@ -257,6 +274,14 @@ def main():
             print 'file sorted in  %s_ok%s)' % (filename,file_extension)
           if args.windows:
             print 'in construccion'
+        elif option_processing == 'remove-duplicate-tweets':
+          inputfile = get_inputfile ('Enter input file name with the tweets: ',path_experiment)
+          outputfile = get_outputfile_w ('Enter output file: ',path_experiment)
+          if args.windows:
+            command="python2.7 %stweets_uniq.py %s %s" % (path_scripts,inputfile,outputfile) 
+          else:
+            command="python2.7 %stweets_uniq.py '%s' '%s'" % (path_scripts,inputfile,outputfile) 
+          os.system(command)
         elif option_processing == 'user-cards':
           inputfile = get_inputfile ('Enter input file name with  users list (one per line): ',path_experiment)
           if args.windows:
