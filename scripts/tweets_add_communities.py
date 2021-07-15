@@ -96,10 +96,17 @@ def get_communities (file_communities,col_user,col_community):
   for line in f_communities:
     if head:
       head= False
+      line = line.strip("\n\r")
+      data = line.split(",")
+      user=data[col_user]
+      community=data[col_community]
+      print user,community
     else:
       line = line.strip("\n\r")
       data = line.split(",")
       user=data[col_user].lower()
+      if user[0] != '@':
+        user ='@'+user
       community=int(data[col_community])
       dict_user_community[user]=community
   return dict_user_community
@@ -113,16 +120,21 @@ def get_number (item):
 
 def get_tweet (tweet):
    data = tweet.split('\t')
-   try:
+   cols_tweet =len (data)
+   if True:
+   #try:
      id_tweet = data[0]
      timestamp = data[1]
      #print timestamp
      date_hour =re.findall(r'(\d\d\d\d)-(\d\d)-(\d\d)\s(\d\d):(\d\d):(\d\d)',timestamp,re.U)
-     #date_hour =re.findall(r'(\d+)/(\d+)/(\d+)\s(\d+):(\d+)',timestamp,re.U)
-     (year,month,day,hour,minutes,seconds) = date_hour[0]
-     #(day,month,year,hour,minutes) = date_hour[0]
-     seconds=0
-     author= data[2]
+     if len(date_hour) == 0:
+       date_hour =re.findall(r'(\d+)/(\d+)/(\d+)\s(\d+):(\d+)',timestamp,re.U)
+       (day,month,year,hour,minutes) = date_hour[0]
+       seconds=0
+     else:
+      (year,month,day,hour,minutes,seconds) = date_hour[0]
+
+     author= data[2].lower()
      text = data[3]
      app = data[4]
      user_id = data[6]
@@ -130,10 +142,25 @@ def get_tweet (tweet):
      following=get_number(data[7])
      statuses=get_number(data[8])
      loc = data[9]
-     return (year,month,day,hour,minutes,seconds, author,text,app,user_id,followers,following,statuses,loc)
-   except:
+     if cols_tweet == 16:
+       #old format
+        relation = None
+        user_retweeted =None
+        match_RT = re.match('RT (@\w+):',text)
+        if match_RT != None:
+          relation = 'RT'
+          user_retweeted= match_RT.group (1)
+     else:
+       relation=data[17]
+       user_retweeted= data[21].lower()
+       if user_retweeted[0] != '@':
+         user_retweeted = '@' + user_retweeted 
+     return (year,month,day,hour,minutes,seconds, author,text,app,user_id,followers,following,statuses,loc,relation,user_retweeted)
+   else:
+   #except:
      print ' tweet not match', tweet
      return None
+  
   
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # main
@@ -202,17 +229,19 @@ def main():
       if tweet_flat == None:
         print 'not match ',  line 
       else:
-        (year,month,day,hour,minutes,seconds, author,text,app,user_id,followers,following,statuses,loc)= tweet_flat
+        (year,month,day,hour,minutes,seconds, author,text,app,user_id,followers,following,statuses,loc,relation,user_retweeted)= tweet_flat
         match=re.match(r'^(\d+)\t',line,re.U)
         if match:
          id_tweet=match.group(1)
         else:
          id_tweet=0
-        author=author.lower()
+        community = None
         if author in dict_user_community:
-         community = dict_user_community[author]
-        else:
-         community = None
+          if relation != 'RT':
+            community = dict_user_community[author]
+          else:
+            if user_retweeted in dict_user_community:
+              community = dict_user_community[user_retweeted]
         line= '%s\t%s\n' % (line,community)
         f_out.write (line)
   exit(0)
