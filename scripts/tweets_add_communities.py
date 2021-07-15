@@ -150,11 +150,13 @@ def get_tweet (tweet):
         if match_RT != None:
           relation = 'RT'
           user_retweeted= match_RT.group (1)
+          user_retweeted = user_retweeted.lower()
      else:
        relation=data[17]
        user_retweeted= data[21].lower()
        if user_retweeted[0] != '@':
          user_retweeted = '@' + user_retweeted 
+         user_retweeted = user_retweeted.lower()
      return (year,month,day,hour,minutes,seconds, author,text,app,user_id,followers,following,statuses,loc,relation,user_retweeted)
    else:
    #except:
