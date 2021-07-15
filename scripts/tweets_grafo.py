@@ -380,6 +380,22 @@ def get_number (item):
     number = int(match.group(0))
   return number
 
+def get_tweet_old (data):
+  author=data[2].lower()
+  text=data[3].lower()
+  try:
+    app=data[4].replace(',',' ')
+    followers=get_number(data[6])
+    following=get_number(data[7])
+    statuses=get_number(data[8])
+    location=data[9].replace(',',' ')
+    hashtag=None
+    lang=None
+    join_date=None
+  except:
+    print data
+  return ((author,text,followers,following,statuses,app,location,hashtag,lang,join_date))
+
 def get_tweet (data):
   author=data[2].lower()
   text=data[3].lower()
@@ -393,8 +409,10 @@ def get_tweet (data):
     lang=data[25]
     join_date_hour=data[26].split(' ')
     join_date=join_date_hour[0]
+    join_date_by_parts=join_date.split('-')
+    join_date=join_date_by_parts[0]
   except:
-    print line
+    print data
   return ((author,text,followers,following,statuses,app,location,ht,lang,join_date))
 
 def main():
@@ -463,7 +481,15 @@ def main():
         print num_line 
       line=line.strip('\r\n')
       data=line.split('\t')
-      if len(data) > 26 :
+      if len(data) == 16:
+        # old format
+        (author,text,followers,following,statuses,app,location,ht,lang,join_date)=get_tweet_old (data)
+        info_author=(followers,following,statuses,app,location,ht,lang,join_date)
+        relation.set_author (author,info_author)
+        list_relations= relation.get_relation (text,type_relation)
+        if len(list_relations) > 0:
+          relation.set_relation (author,text, list_relations,type_relation)
+      elif len(data) > 26 :
         line_old=''
         (author,text,followers,following,statuses,app,location,ht,lang,join_date)=get_tweet (data)
         info_author=(followers,following,statuses,app,location,ht,lang,join_date)
@@ -472,6 +498,7 @@ def main():
         if len(list_relations) > 0:
           relation.set_relation (author,text, list_relations,type_relation)
       else:
+        print "trucated line, repair"
         line_old=line
         print 'truncated tweet',line
  #extract and print top 
@@ -493,7 +520,14 @@ def main():
         print num_line 
       line=line.strip('\r\n')
       data=line.split('\t') 
-      if len(data) > 26 :
+      if len(data) == 16:
+        # old format
+        (author,text,followers,following,statuses,app,location,ht,lang,join_date)=get_tweet_old (data)
+        info_author=(followers,following,statuses,app,location,ht,lang,join_date)
+        list_relations= relation.get_relation (text,type_relation)
+        if len(list_relations) > 0:
+          relation.set_relation_nodes (author,text, list_relations,type_relation,app,ht,lang)
+      elif len(data) > 26 :
         line_old=''
         (author,text,followers,following,statuses,app,location,ht,lang,join_date)=get_tweet (data)
         info_author=(followers,following,statuses,app,location,ht,lang,join_date)
@@ -501,6 +535,7 @@ def main():
         if len(list_relations) > 0:
           relation.set_relation_nodes (author,text, list_relations,type_relation,app,ht,lang)
       else:
+        print "trucated line, repair"
         line_old=line
         print 'truncated tweet',line
   print 'format gdf'
