@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2015 Mariluz Congosto
 #
-# This program is free software: you can redistribute it and/or modify
+# This program is freinfo_authore software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
@@ -324,7 +324,7 @@ class Relation(object):
     log_statuses=0
     # print nodes
     num_nodes=0
-    f_out.write ('nodedef>name VARCHAR,label VARCHAR,Links INT,Links_in INT,links_out INT,followers INT,following INT,statuses VARCHAR,app VARCHAR,location VARCHAR, HT VARCHAR, lang VARCHAR,join_date VARCHAR\n')
+    f_out.write ('nodedef>name VARCHAR,label VARCHAR,Links INT,Links_in INT,links_out INT,followers INT,following INT,statuses VARCHAR,app VARCHAR,location VARCHAR, HT VARCHAR, lang VARCHAR,join_date VARCHAR,join_year VARCHAR\n')
     links_order=sorted([(value,key) for (key,value) in self.dict_rank_links.items()])
     num_nodes=0
     for (value,user) in links_order:
@@ -335,7 +335,7 @@ class Relation(object):
       connections= connections_in + connections_out
       if connections >0:
         if user in self.dict_authors:
-          (followers,following,statuses,app,location,ht,lang,join_date)=self.dict_authors[user]
+          (followers,following,statuses,app,location,ht,lang,join_date,join_year)=self.dict_authors[user]
           if int(followers) >0:
             log_followers=int(math.log(float(followers),10))
           if int(following) >0:
@@ -343,15 +343,15 @@ class Relation(object):
           if int(statuses) >0:
             log_statuses=int(math.log(float(statuses),10))
         else:
-          (followers,following,statuses,app,location,ht,lang,join_date)=(0,0,0,0,0,0,0,0)
+          (followers,following,statuses,app,location,ht,lang,join_date,join_year)=(0,0,0,0,0,0,0,0,0)
         user_index= self.dict_rank_links[user]  
         num_nodes= num_nodes +1  
         if num_nodes % 100000 == 0:
           print '%s nodes generated' % (num_nodes) 
         #print ('node %s %s conections %s' % (num_nodes,user,connections))  
-        f_out.write ('%s, %s, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f,%s,%s,%s,%s,%s\n' % (user_index, user, connections,connections_in,connections_out,log_followers,log_following,log_statuses,app,location,ht,lang,join_date))
+        f_out.write ('%s, %s, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f,%s,%s,%s,%s,%s,%s\n' % (user_index, user, connections,connections_in,connections_out,log_followers,log_following,log_statuses,app,location,ht,lang,join_date,join_year))
   # print arcs 
-    f_out.write ('edgedef>node1 VARCHAR,node2 VARCHAR, directed BOOLEAN, weight INT, app VARCHAR, HT VARCHAR, lang VARCHAR,join_date VARCHAR\n')
+    f_out.write ('edgedef>node1 VARCHAR,node2 VARCHAR, directed BOOLEAN, weight INT, app VARCHAR,HT VARCHAR, lang VARCHAR,join_date VARCHAR,join_year VARCHAR\n')
     num_edges=0
     mentions_matrix_order=sorted([(key,value) for (key,value) in mentions_matrix.items()])
     for (key,value) in mentions_matrix_order:
@@ -360,16 +360,17 @@ class Relation(object):
       num_mentions= mentions_matrix.getitem(i,j)
       user=self.dict_rank_links_index[i]
       if user in self.dict_authors:
-        (followers,following,statuses,app,location,ht,lang,join_date)=self.dict_authors[user]
+        (followers,following,statuses,app,location,ht,lang,join_date,join_yeat)=self.dict_authors[user]
       else:
         join_date=0
+        join_year=0
         location=''
       (app,ht,lang)=mentions_matrix_attr.getitem(i,j)
       if num_mentions >0:
         num_edges= num_edges +1  
         if num_edges % 100000 == 0:
           print '%s nodes generated' % (num_edges)   
-        f_out.write ('%s,%s,true,%.0f,%s,%s,%s,%s\n' % (i,j,num_mentions,app,ht,lang,join_date))
+        f_out.write ('%s,%s,true,%.0f,%s,%s,%s,%s,%s\n' % (i,j,num_mentions,app,ht,lang,join_date,join_year))
     f_out.close()
     return
                  
@@ -392,9 +393,10 @@ def get_tweet_old (data):
     hashtag=None
     lang=None
     join_date=None
+    join_year=None
   except:
     print data
-  return ((author,text,followers,following,statuses,app,location,hashtag,lang,join_date))
+  return (author,text,followers,following,statuses,app,location,hashtag,lang,join_date,join_year)
 
 def get_tweet (data):
   author=data[2].lower()
@@ -407,13 +409,14 @@ def get_tweet (data):
     location=data[9].replace(',',' ')
     ht=data[24]
     lang=data[25]
-    join_date_hour=data[26].split(' ')
-    join_date=join_date_hour[0]
-    join_date_by_parts=join_date.split('-')
-    join_date=join_date_by_parts[0]
+    join_date = data[26]
+    join_date_hour=join_date.split(' ')
+    join_date_day=join_date_hour[0]
+    join_date_by_parts=join_date_day.split('-')
+    join_year=join_date_by_parts[0]
   except:
     print data
-  return ((author,text,followers,following,statuses,app,location,ht,lang,join_date))
+  return ((author,text,followers,following,statuses,app,location,ht,lang,join_date,join_year))
 
 def main():
  # init data
@@ -483,16 +486,16 @@ def main():
       data=line.split('\t')
       if len(data) == 16:
         # old format
-        (author,text,followers,following,statuses,app,location,ht,lang,join_date)=get_tweet_old (data)
-        info_author=(followers,following,statuses,app,location,ht,lang,join_date)
+        (author,text,followers,following,statuses,app,location,ht,lang,join_date,join_year)=get_tweet_old (data)
+        info_author=(followers,following,statuses,app,location,ht,lang,join_date,join_year)
         relation.set_author (author,info_author)
         list_relations= relation.get_relation (text,type_relation)
         if len(list_relations) > 0:
           relation.set_relation (author,text, list_relations,type_relation)
       elif len(data) > 26 :
         line_old=''
-        (author,text,followers,following,statuses,app,location,ht,lang,join_date)=get_tweet (data)
-        info_author=(followers,following,statuses,app,location,ht,lang,join_date)
+        (author,text,followers,following,statuses,app,location,ht,lang,join_date,join_year)=get_tweet (data)
+        info_author=(followers,following,statuses,app,location,ht,lang,join_date,join_year)
         relation.set_author (author,info_author)
         list_relations= relation.get_relation (text,type_relation)
         if len(list_relations) > 0:
@@ -522,15 +525,15 @@ def main():
       data=line.split('\t') 
       if len(data) == 16:
         # old format
-        (author,text,followers,following,statuses,app,location,ht,lang,join_date)=get_tweet_old (data)
-        info_author=(followers,following,statuses,app,location,ht,lang,join_date)
+        (author,text,followers,following,statuses,app,location,ht,lang,join_date,join_year)=get_tweet_old (data)
+        info_author=(followers,following,statuses,app,location,ht,lang,join_date,join_year)
         list_relations= relation.get_relation (text,type_relation)
         if len(list_relations) > 0:
           relation.set_relation_nodes (author,text, list_relations,type_relation,app,ht,lang)
       elif len(data) > 26 :
         line_old=''
-        (author,text,followers,following,statuses,app,location,ht,lang,join_date)=get_tweet (data)
-        info_author=(followers,following,statuses,app,location,ht,lang,join_date)
+        (author,text,followers,following,statuses,app,location,ht,lang,join_date,join_year)=get_tweet (data)
+        info_author=(followers,following,statuses,app,location,ht,lang,join_date,join_year)
         list_relations= relation.get_relation (text,type_relation)
         if len(list_relations) > 0:
           relation.set_relation_nodes (author,text, list_relations,type_relation,app,ht,lang)
