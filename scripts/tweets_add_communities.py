@@ -121,8 +121,7 @@ def get_number (item):
 def get_tweet (tweet):
    data = tweet.split('\t')
    cols_tweet =len (data)
-   if True:
-   #try:
+   try:
      id_tweet = data[0]
      timestamp = data[1]
      #print timestamp
@@ -158,8 +157,7 @@ def get_tweet (tweet):
          user_retweeted = '@' + user_retweeted 
          user_retweeted = user_retweeted.lower()
      return (year,month,day,hour,minutes,seconds, author,text,app,user_id,followers,following,statuses,loc,relation,user_retweeted)
-   else:
-   #except:
+   except:
      print ' tweet not match', tweet
      return None
   
