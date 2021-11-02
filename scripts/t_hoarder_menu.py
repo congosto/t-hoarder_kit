@@ -102,7 +102,7 @@ def main():
     path_keys='%s/keys/' % root
     path_scripts='%s/scripts/' % root
     path_store='%s/store/' % root
-  list_suboptions_2= ['profile','followers','following','relations','tweets','role']
+  list_suboptions_2= ['profile','followers','following','relations','tweets','role','list']
   list_suboptions_6= ['RT','reply','mention']
   list_suboptions_7= ['entities','classify','users','spread']
   list_suboptions_8= ['sort','remove-duplicate-tweets','convert-to-csv','user-cards', 'add-communities','spread-by-communities','get_photos-community']
@@ -140,7 +140,7 @@ def main():
       print 'What function do you want to run?'
       print '--------------------------------'
       print '1. Get a user token access'
-      print '2. Get users information (profile | followers | following | relations | tweets | role)'
+      print '2. Get users information (profile | followers | following | relations | tweets | role | list)'
       print '3. Make a query on Twitter'
       print '4. Get tweets on real time'
       print '5. Generate the declared relations graph (followers or following or both)'
@@ -165,7 +165,7 @@ def main():
       elif option ==2:
         os.chdir(path_experiment)
         inputfile=get_inputfile ('Enter input file name with the list of users or list of profiles (each user in a line): ',path_experiment)
-        option_rest = get_suboption ('Enter an option (profile | followers | following |relations | tweets| role) : ' ,list_suboptions_2)
+        option_rest = get_suboption ('Enter an option (profile | followers | following |relations | tweets| role | list) : ' ,list_suboptions_2)
         if option_rest == 'role':
           if args.windows:
             command="python2.7 %susers_roles.py %s %s %s" % (path_scripts,file_app_keys,file_user_keys, inputfile) 
