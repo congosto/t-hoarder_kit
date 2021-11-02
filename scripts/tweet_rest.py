@@ -67,6 +67,7 @@ class oauth_keys(object):
     try:
       result = api.rate_limit_status(resources=type_resource)
       resources=result['resources']
+      #print resources
       resource=resources[type_resource]
       rate_limit=resource[method]
       limit=int(rate_limit['limit'])
@@ -522,6 +523,28 @@ def get_tweets(user_keys,api,user,flag_id_user,f_log,flag_RT):
         f_log.write (text_error)
   return tweets_list
 
+def get_lists(user_keys,api,owner_list , list_name,f_out,f_log):  
+  members_list=[]
+  error=False
+  pages=0
+  print 'Getting members list', owner_list , list_name
+  intentos=0
+  num_pages=0
+  first_tweet=True
+  hay_tweets=True
+  recent_tweet=1000
+  count_tweets=0
+  oauth_keys.check_rate_limits (user_keys,api,'lists','/lists/members/show',900)
+  try:
+    page =api.list_members (owner_screen_name=owner_list, list_id=list_name,count=5000)
+  except:
+    f_log.write(('%s, %s error en tweepy, method list/members, %s-%s\n')  % (time.asctime(),TypeError(),owner_list,list_name)) 
+    return
+  print "--> len page", len(page)
+  for member in page:
+    put_profile (api,owner_list,member,list_name,f_log, f_out)
+  return
+
 def get_attrib (f_in):
   i=0
   dict_user_attrib={}
@@ -575,6 +598,7 @@ def main():
   action.add_argument('--connections', action='store_true',help='get connections')
   action.add_argument('--tweets', action='store_true', help='get tweets')
   action.add_argument('--h_index', action='store_true', help='get h_index')
+  action.add_argument('--lists', action='store_true', help='get list')
 
   #obtego los argumentos
   args = parser.parse_args()
@@ -590,6 +614,7 @@ def main():
   flag_connections=args.connections
   flag_tweets = args.tweets
   flag_h_index = args.h_index
+  flag_lists=args.lists
   
   #obtengo el nombre y la extensión del ficheros con la lita de los usuarios
   filename=re.search (r"([\.]*[\w/-]+)\.([\w]+)",file_users)
@@ -701,6 +726,19 @@ def main():
       h=h_index.h()
       h_index.clear()
       f_out.write('%s\t%s\n' % (user,h))
+    f_out.close()
+  elif flag_lists:
+    f_log= open (prefix+'_log.txt','w')
+    f_out=  codecs.open(prefix+'_lists.txt','w',encoding='utf-8')
+    print "-->Results in %s_lists.txt\n" % prefix
+    f_out.write ('id user\tscreen_name\tnet\trelation\tfollowers\tfollowing\tstatuses\tlists\tsince\tname\ttime zone\tlocation\tweb\tavatar\tbio\tFavorites count\tlang\tverified\tprotected\ttimestamp\n')
+    for line in f_users_group_file:
+      user_list= line.rstrip('\r\n')
+      list_members=re.search (r'https://twitter.com/([\w]+)/lists/([\w-]+)',user_list)
+      owner_list=list_members.group(1)
+      list_name=list_members.group(2)
+      print owner_list,list_name 
+      get_lists (user_keys,api,owner_list ,  list_name ,f_out,f_log) 
     f_out.close()
   f_log.close()
   f_users_group_file.close()
