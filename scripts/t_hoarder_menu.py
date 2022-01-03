@@ -105,7 +105,7 @@ def main():
   list_suboptions_2= ['profile','followers','following','relations','tweets','role','list']
   list_suboptions_6= ['RT','reply','mention']
   list_suboptions_7= ['entities','classify','users','spread']
-  list_suboptions_8= ['sort','remove-duplicate-tweets','convert-to-csv','user-cards', 'add-communities','spread-by-communities','get_photos-community']
+  list_suboptions_8= ['sort','remove-duplicate-tweets','convert-to-csv','user-cards', 'add-communities','spread-by-communities','get_photos-community','twarc2thoarder']
   enviroment=False
   option=8
   exit='n'
@@ -146,7 +146,7 @@ def main():
       print '5. Generate the declared relations graph (followers or following or both)'
       print '6. Generate the dynamic relations graph (RT | reply | mentions)'
       print '7. Processing tweets (entities| classify| users | spread)'
-      print '8. utils (sort| remove-duplicate-tweets| convert-to-csv | user-cards| add-communities |spread-by-communities| get_photos-community)'
+      print '8. utils (sort| remove-duplicate-tweets| convert-to-csv | user-cards| add-communities |spread-by-communities| get_photos-community| twarc2thoarder)'
       print '9. Exit'
       print ' '
       while True:
@@ -261,7 +261,7 @@ def main():
           os.system(command)
       elif option ==8:
         os.chdir(path_experiment)
-        option_processing= get_suboption ('Enter option (sort | remove-duplicate-tweets| convert-to-csv| user-cards| add-communities| spread-by-communities| get_photos-community): ',list_suboptions_8)
+        option_processing= get_suboption ('Enter option (sort | remove-duplicate-tweets| convert-to-csv| user-cards| add-communities| spread-by-communities| get_photos-community| twarc2thoarder): ',list_suboptions_8)
         if option_processing == 'sort':
           inputfile = get_inputfile ('Enter input file name with the tweets (got from a query or in real time): ',path_experiment)
           if args.linux:
@@ -324,6 +324,18 @@ def main():
             command="python2.7 %stweet_get_fotos.py  '%s' '%s' '%s'  " % (path_scripts, file_app_keys,file_user_keys,inputfile)
             print command
           os.system(command)
+        elif option_processing == 'twarc2thoarder':
+          inputfile = get_inputfile ('Enter a twarc json file): ',path_experiment)
+          outputfile = get_outputfile_w ('Enter output file): ',path_experiment)
+          if args.windows:
+            command="python2.7 %stwarc2thoarder.py  %s %s " % (path_scripts,inputfile,outputfile) 
+          else:
+            command="python2.7 %stwarc2thoarder.py  '%s' '%s'  " % (path_scripts,inputfile, outputfile)
+            print command
+          os.system(command)
+
+
+
       elif option == 9:
          exit='y'
     except KeyboardInterrupt:
