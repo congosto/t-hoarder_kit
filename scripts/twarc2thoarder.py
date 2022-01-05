@@ -71,7 +71,7 @@ def main():
           tweet_related = tweets_related [i]
           id_related = tweet_related['id']
           author_id_related = tweet_related ['author_id']
-          text_related = tweet_related ['text']
+          text_related = re.sub('[\r\n\t]+', ' ',tweet_related ['text'])
           (author,name,since,description,location,followers_count,following_count,tweet_count,verified,avatar) = dict_users [author_id_related]
           dict_tweets_related [id_related] = (author,text_related)
  # get data 
