@@ -111,7 +111,7 @@ def main():
 #get user profile
           id_user = tweet ['author_id'] 
           (author,name,since,description,location,followers_count,following_count,tweet_count,verified,avatar) = dict_users [id_user]
-          since= re.sub('T',' ',user['created_at'])
+          since= re.sub('T',' ',since)
           since = re.sub('.000Z',' ',since)
 #get interactions Ids
           if 'referenced_tweets' in tweet:
