@@ -8,8 +8,8 @@ import codecs
 import re
 from datetime import datetime
 #from dateutil import parser
-from tweepy.utils import import_simplejson
-json = import_simplejson()
+import simplejson as json
+#json = import_simplejson()
 from tweepy.utils import parse_datetime, parse_html_value, parse_a_href
 import argparse
 def main():
@@ -32,7 +32,7 @@ def main():
   wrong=False
   count_wrong=0
   num_tweets=0
-  csv_file.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tname\tdescription\turl_media\ttype media\tquoted\trelation\treplied_id\tuser replied\tretweeted_id\tuser retweeted\tquoted_id\tuser quoted\tfirst HT\tlang\tcreated_at\tverified\tavatar\tlink\n')
+  csv_file.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tname\tdescription\turl_media\ttype media\tquoted\trelation\treplied_id\tuser replied\tretweeted_id\tuser retweeted\tquoted_id\tuser quoted\tfirst HT\tlang\tcreated_at\tverified\tavatar\tlink\tRTs\treplies\tquotes\tfav\n')
   for line in input_file:
       #try:
       if True:
@@ -100,6 +100,10 @@ def main():
           type_media=None
           text=None
           name=None
+          RTs =0
+          quotes=0
+          replies=0
+          fav =0
 # iteration
           tweet = data [i]
 # basic info
@@ -159,10 +163,15 @@ def main():
             text=re.sub('[\r\n\t]+', ' ',tweet['text'])
 #get quoted if exist
 
-#ger metrics 
-  
+#get metrics 
+          if 'public_metrics' in tweet:
+            metrics= tweet['public_metrics']
+            RTs = metrics ['retweet_count']
+            replies=  metrics['reply_count']
+            quotes= metrics['quote_count']
+            fav =  metrics['like_count']
           link_tweet= 'https://twitter.com/%s/status/%s' % (author,id_tweet)
-          tweet='%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %  (id_tweet,
+          tweet='%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' %  (id_tweet,
                 date,
                 '@'+author,
                 text,
@@ -191,7 +200,11 @@ def main():
                 since,
                 verified,
                 avatar,
-                link_tweet)
+                link_tweet,
+                RTs,
+                replies,
+                quotes,
+                fav)
           csv_file.write(tweet)
       #except Exception, err:
       else:
