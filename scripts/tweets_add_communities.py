@@ -94,21 +94,24 @@ def get_communities (file_communities,col_user,col_community):
     exit (1)
   head=True
   for line in f_communities:
-    if head:
+     if head:
       head= False
       line = line.strip("\n\r")
       data = line.split(",")
       user=data[col_user]
       community=data[col_community]
       print user,community
-    else:
+     else:
       line = line.strip("\n\r")
       data = line.split(",")
       user=data[col_user].lower()
       if user[0] != '@':
         user ='@'+user
-      community=int(data[col_community])
-      dict_user_community[user]=community
+      try:
+        community=int(data[col_community])
+        dict_user_community[user]=community
+      except:
+        dict_user_community[user]="None"
   return dict_user_community
      
 def get_number (item):
