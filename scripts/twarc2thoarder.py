@@ -34,8 +34,7 @@ def main():
   num_tweets=0
   csv_file.write ('id tweet\tdate\tauthor\ttext\tapp\tid user\tfollowers\tfollowing\tstauses\tlocation\turls\tgeolocation\tname\tdescription\turl_media\ttype media\tquoted\trelation\treplied_id\tuser replied\tretweeted_id\tuser retweeted\tquoted_id\tuser quoted\tfirst HT\tlang\tcreated_at\tverified\tavatar\tlink\tRTs\treplies\tquotes\tfav\n')
   for line in input_file:
-      #try:
-      if True:
+      try:
         object= json.loads(line)
         data = object['data']
         includes = object['includes']
@@ -206,8 +205,7 @@ def main():
                 quotes,
                 fav)
           csv_file.write(tweet)
-      #except Exception, err:
-      else:
+      except Exception, err:
         str_error=str(err)
         if str_error.find('Unterminated string') != -1:
           last_line=line
