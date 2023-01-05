@@ -2,20 +2,20 @@
 # -*- coding: iso-8859-1 -*-
 # Creative commons 3.0 spain
 # http://creativecommons.org/license#!/usr/bin/python
-
-import sys, csv
+from __future__ import print_function
+import sys
 import codecs
 import re
-from datetime import datetime
-#from dateutil import parser
 import simplejson as json
-#json = import_simplejson()
-from tweepy.utils import parse_datetime, parse_html_value, parse_a_href
+#from tweepy.utils import parse_datetime, parse_html_value, parse_a_href
+from imp import reload
 import argparse
+
+  
 def main():
-  reload(sys)
-  sys.setdefaultencoding('utf-8')
-  sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
+  #reload(sys)
+  #sys.setdefaultencoding('utf-8')
+  #sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
   parser = argparse.ArgumentParser(description='ls this script classifies users into categories according to their activity')
   parser.add_argument('file_in', type=str, help='file with twarc tweets')
   parser.add_argument('file_out', type=str,default='', help='file with thoarder tweets')
@@ -26,9 +26,7 @@ def main():
   input_file = codecs.open(file_in,'rU',encoding='utf-8')
   csv_file = codecs.open(file_out, "wb",encoding='utf-8')
   log_file = codecs.open(file_out+'.log', "wb",encoding='utf-8')
-  first_line=True
   last_line=''
-  paseado=False
   wrong=False
   count_wrong=0
   num_tweets=0
@@ -38,7 +36,6 @@ def main():
         object= json.loads(line)
         data = object['data']
         includes = object['includes']
-        tweets = data
         users = includes['users']
         if 'tweets' in includes:
           tweets_related = includes['tweets']
@@ -49,7 +46,6 @@ def main():
         size_users = len (users)
         dict_users ={}
         dict_tweets_related ={}
-        dict_tweets_quoted ={}
  # get users data
         for i in range (0,size_users):
           user = users [i]
@@ -77,22 +73,18 @@ def main():
         for i in range (0,size_data):
           num_tweets=num_tweets +1 
           if num_tweets % 10000 == 0:
-            print num_tweets
+            print(num_tweets)
   # defauld values
           entities=None
           relation=None
           replied_id=None
-          replied_user_id=None
           replied_screen_name=None
           retweeted_id=None
-          retweeted_user_id=None
           retweeted_screen_name=None
           quoted_id=None
-          quoted_user_id=None
           quoted_screen_name=None
           quoted_text = None
           first_HT=None
-          statuse_quoted_text=None
           geoloc=None
           url_expanded =None
           url_media=None
@@ -110,7 +102,10 @@ def main():
           author = user['username']
           date = re.sub('T',' ',tweet['created_at'])
           date = re.sub('.000Z',' ',date)
-          app=tweet['source']
+          if 'source' in tweet:
+            app=tweet['source']
+          else:
+            app="None"
 #get user profile
           id_user = tweet ['author_id'] 
           (author,name,since,description,location,followers_count,following_count,tweet_count,verified,avatar) = dict_users [id_user]
@@ -205,7 +200,7 @@ def main():
                 quotes,
                 fav)
           csv_file.write(tweet)
-      except Exception, err:
+      except Exception as  err:
         str_error=str(err)
         if str_error.find('Unterminated string') != -1:
           last_line=line
@@ -222,8 +217,8 @@ def main():
   csv_file.close()
   exit(0) 
 if __name__ == '__main__':
-  #try:
+  try:
     main()
-  #except KeyboardInterrupt:
-    #print '\nGoodbye!'
-    #exit(0)
+  except KeyboardInterrupt:
+    print('\nGoodbye!')
+    exit(0)
