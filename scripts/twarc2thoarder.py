@@ -156,7 +156,6 @@ def main():
           if 'text' in tweet:
             text=re.sub('[\r\n\t]+', ' ',tweet['text'])
 #get quoted if exist
-
 #get metrics 
           if 'public_metrics' in tweet:
             metrics= tweet['public_metrics']
