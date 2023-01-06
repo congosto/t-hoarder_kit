@@ -19,15 +19,15 @@ from __future__ import print_function
 import os
 import sys
 import codecs
-import csv
-#import unicodecsv as csv
+#import csv
+import unicodecsv as csv
 from imp import reload
 import argparse
 
 def main():
-  #reload(sys)
-  #sys.setdefaultencoding('utf-8')
-  #sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
+  reload(sys)
+  sys.setdefaultencoding('utf-8')
+  sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
   #defino argumentos de script
   parser = argparse.ArgumentParser(description='This script generates a file in json format for visualization in d3.js')
   parser.add_argument('file_in', type=str, help='file with data')
